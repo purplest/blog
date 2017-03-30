@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Reference type of volatile | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Reference type of volatile众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，bool">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Reference type of volatile">
+<meta property="og:url" content="http://yoursite.com/2016/08/15/Reference type of volatile/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Reference type of volatile众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，bool">
+<meta property="og:updated_time" content="2017-03-30T10:33:25.791Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Reference type of volatile">
+<meta name="twitter:description" content="Reference type of volatile众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，bool">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Reference type of volatile" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/08/15/Reference type of volatile/" class="article-date">
+  <time datetime="2016-08-14T16:00:00.000Z" itemprop="datePublished">2016-08-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/architecture/">architecture</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Reference type of volatile
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Reference-type-of-volatile"><a href="#Reference-type-of-volatile" class="headerlink" title="Reference type of volatile"></a>Reference type of volatile</h1><p>众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，boolean作为开关，int作为计数器 or version ID。</p>
+<p>但是一直有个疑问，对于reference type，JVM到底是如何保证volatile的语义的呢？会不会像final一样，仅仅只是修饰这个reference呢？带着这个疑问，咱们尝试通过汇编代码来一探究竟。</p>
+<h3 id="0-准备工具"><a href="#0-准备工具" class="headerlink" title="0.准备工具"></a>0.准备工具</h3><p>显然，普通方法是没办法查看到对应的汇编代码的。通过javac xxx只能看到对应的bytecode，对底层的内存屏障之类的东西，其实还是透明的。so，咱们需要引入一个小工具，它叫hsdis。</p>
+<p>关于这个小工具，有很多办法可以获取，<a href="https://kenai.com/projects/base-hsdis/downloads" target="_blank" rel="external">Kenai官方</a>提供了bsd、linux以及solaris所对应的.so，选择对应的CPU架构即可（i386 or amd64）。</p>
+<p>当然，这个时候肯定有人跳出来说，“喂，就这么无视我们windows么？”nonono，我才不会说我也用的是windows呢~对应的方法，无非也就是：</p>
+<ul>
+<li>[ ] <a href="http://dropzone.nfshost.com/hsdis.htm" target="_blank" rel="external">自己编译，丰衣足食</a>。</li>
+<li>[x] <a href="http://vorboss.dl.sourceforge.net/project/fcml/fcml-1.1.1/hsdis-1.1.1-win32-amd64.zip" target="_blank" rel="external">吃拿卡要~</a></li>
+</ul>
+<p>作为一个懒到了无药可救的人来说，肯定是选择第二个啦~</p>
+<p>偷偷的说一句，其实只是参考了<a href="http://stackoverflow.com/questions/1503479/how-to-see-jit-compiled-code-in-jvm" target="_blank" rel="external">这个答案</a>的啦~</p>
+<p>当然，废话一句，下载后讲dll放进<code>%JAVA_HOME%\jre\bin\server</code>就OK了</p>
+<h3 id="1-热身"><a href="#1-热身" class="headerlink" title="1.热身"></a>1.热身</h3><p>下面是见证奇迹的时刻。</p>
+<p>首先，我们先来一段简单的代码热热身，先看看primitive type生成的汇编指令是啥样。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">int</span> i;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">        i = <span class="number">5</span>;</div><div class="line">        <span class="keyword">return</span> i;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        Main main = <span class="keyword">new</span> Main();</div><div class="line">        System.out.println(main.get());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>因为生成的汇编代码实在太多了，因此我们需要限制某个点，就取get方法，并且重定向一下。</p>
+<p><code>java -XX:+UnlockDiagnosticVMOptions -XX:+PrintAssembly -Xcomp -XX:CompileCommand=dontinline,*Main.get -XX:CompileCommand=compileonly,*Main.get Main &gt; main</code></p>
+<p>因为汇编代码实在太多，因此只取部分来说</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">0x0000000002a5fc5f: mov     rax,170802d0h     ;   &#123;metadata(&#123;method&#125; &#123;0x00000000170802d8&#125; &apos;get&apos; &apos;()I&apos; in &apos;Main&apos;)&#125;</div><div class="line">0x0000000002a5fc69: and     esi,0h</div><div class="line">0x0000000002a5fc6c: cmp     esi,0h</div><div class="line">0x0000000002a5fc6f: je      2a5fc91h          ;*aload_0</div><div class="line">                                              ; - Main::get@0 (line 6)</div><div class="line"></div><div class="line">0x0000000002a5fc75: mov     eax,5h</div><div class="line">0x0000000002a5fc7a: mov     dword ptr [rdx+0ch],eax</div><div class="line">0x0000000002a5fc7d: lock add dword ptr [rsp],0h  ;*putfield i</div><div class="line">                                              ; - Main::get@2 (line 6)</div><div class="line"></div><div class="line">0x0000000002a5fc82: mov     eax,dword ptr [rdx+0ch]  ;*getfield i</div><div class="line">                                              ; - Main::get@6 (line 7)</div><div class="line"></div><div class="line">0x0000000002a5fc85: add     rsp,30h</div><div class="line">0x0000000002a5fc89: pop     rbp</div><div class="line">0x0000000002a5fc8a: test    dword ptr [1e0100h],eax  ;   &#123;poll_return&#125;</div><div class="line">0x0000000002a5fc90: ret</div></pre></td></tr></table></figure>
+<p>恩，非常棒的是，列出了调用的方法名，返回值，以及第几行。</p>
+<p>我们可以看到，因为在intel的X86架构下，只对<code>StoreLoad</code>操作需要添加内存屏障（具体细节请参考<a href="http://g.oswego.edu/dl/jmm/cookbook.html" target="_blank" rel="external">JSR-133</a>），而从生成的汇编指令中也可以看出，是通过<code>lock add xxx</code>操作来达到目的。</p>
+<h3 id="2-正餐"><a href="#2-正餐" class="headerlink" title="2.正餐"></a>2.正餐</h3><p>那试完了primitive type，就该来看看reference type了。</p>
+<p>首先先看java源码。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Inner</span> </span>&#123;</div><div class="line">        <span class="keyword">public</span> <span class="keyword">int</span> num;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">volatile</span> Inner inner;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Main</span><span class="params">()</span> </span>&#123;</div><div class="line">        <span class="keyword">this</span>.inner = <span class="keyword">new</span> Inner();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> Inner <span class="title">get</span><span class="params">()</span> </span>&#123;</div><div class="line">        inner = <span class="keyword">new</span> Inner();</div><div class="line">        inner.num = <span class="number">0</span>;</div><div class="line">        <span class="keyword">return</span> inner;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        Main main = <span class="keyword">new</span> Main();</div><div class="line">        System.out.println(main.get());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>对于inner的new和inner.num的复制操作，会是哪个需要加入内存屏障呢？根据我们的经验，这个volatile应该是用来修饰inner的，那么我们生成汇编指令来看看呗。</p>
+<p>还是熟悉的味道，还是原来的代码来生成汇编指令。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">0x0000000002a40a87: call    2985ee0h          ; OopMap&#123;[56]=Oop [48]=Oop off=204&#125;</div><div class="line">                                              ;*invokespecial &lt;init&gt;</div><div class="line">                                              ; - Main::get@7 (line 14)</div><div class="line">                                              ;   &#123;optimized virtual_call&#125;</div><div class="line">0x0000000002a40a8c: mov     rax,qword ptr [rsp+30h]</div><div class="line">0x0000000002a40a91: mov     rdx,qword ptr [rsp+38h]</div><div class="line">0x0000000002a40a96: mov     r10,rax</div><div class="line">0x0000000002a40a99: mov     dword ptr [rdx+0ch],r10d</div><div class="line">0x0000000002a40a9d: mov     rax,rdx</div><div class="line">0x0000000002a40aa0: shr     rax,9h</div><div class="line">0x0000000002a40aa4: mov     rsi,118f5000h</div><div class="line">0x0000000002a40aae: mov     byte ptr [rax+rsi],0h</div><div class="line">0x0000000002a40ab2: lock add dword ptr [rsp],0h  ;*putfield inner</div><div class="line">                                              ; - Main::get@10 (line 14)</div><div class="line"></div><div class="line">0x0000000002a40ab7: mov     eax,dword ptr [rdx+0ch]  ;*getfield inner</div><div class="line">                                              ; - Main::get@14 (line 15)</div><div class="line"></div><div class="line">0x0000000002a40aba: mov     dword ptr [rax+0ch],0h  ;*putfield num</div><div class="line">                                              ; - Main::get@18 (line 15)</div><div class="line">                                              ; implicit exception: dispatches to 0x0000000002a40af4</div><div class="line">0x0000000002a40ac1: mov     eax,dword ptr [rdx+0ch]  ;*getfield inner</div><div class="line">                                              ; - Main::get@22 (line 16)</div><div class="line"></div><div class="line">0x0000000002a40ac4: add     rsp,50h</div><div class="line">0x0000000002a40ac8: pop     rbp</div><div class="line">0x0000000002a40ac9: test    dword ptr [260100h],eax  ;   &#123;poll_return&#125;</div><div class="line">0x0000000002a40acf: ret</div></pre></td></tr></table></figure>
+<p>汇编很长，照理只截取重点。</p>
+<p>可以从汇编指令中看到，首先有个call，这个call的作用是调用<code>*invokespecial &lt;init&gt;</code>来初始化inner的（1.7新加入的指令），初始化完后JVM直接在第14行后用<code>lock add xxx</code>来做了同步，而下面的第15行对inner.num的写入操作被JVM红果果的忽视了。</p>
+<p>看来已经通过汇编源码验证了咱们的猜想，已经是时候下结论了，即volatile只是保证它修饰的那个参数的正确同步，对于reference type来说，只能保证对引用的正确同步。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/08/15/Reference type of volatile/" data-id="cj0w9khb1000ha4sk4da71cd7" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/09/20/Contravariance & Covariance In Java Generics/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Contravariance &amp; Covariance in Java Generics
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/05/24/MongoDB Tutorial ①安装及基本概念/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">MongoDB Tutorial ①安装及基本概念</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/MongoDB/">MongoDB</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/architecture/">architecture</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/jdk-8/">jdk 8</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/03/30/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2016/09/20/Contravariance & Covariance In Java Generics/">Contravariance &amp; Covariance in Java Generics</a>
+          </li>
+        
+          <li>
+            <a href="/2016/08/15/Reference type of volatile/">Reference type of volatile</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/24/MongoDB Tutorial ①安装及基本概念/">MongoDB Tutorial ①安装及基本概念</a>
+          </li>
+        
+          <li>
+            <a href="/2016/03/22/Striped64/">Striped64</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

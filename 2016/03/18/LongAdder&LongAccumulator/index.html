@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>LongAdder &amp; LongAccumulator | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="在JDK1.8中，java.util.concurrent.atomic包下增加了几个类:LongAdder、LongAccumulator、DoubleAdder、DoubleAccumulator，都是原Atomic的改进版。
+在原Atomic系列类中，通过CAS的方式来保证在并发环境下的原子性，相对于synchronized和lock的方式来说，在并发环境下已经高效了很多了。但是在高并发下，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LongAdder & LongAccumulator">
+<meta property="og:url" content="http://yoursite.com/2016/03/18/LongAdder&LongAccumulator/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在JDK1.8中，java.util.concurrent.atomic包下增加了几个类:LongAdder、LongAccumulator、DoubleAdder、DoubleAccumulator，都是原Atomic的改进版。
+在原Atomic系列类中，通过CAS的方式来保证在并发环境下的原子性，相对于synchronized和lock的方式来说，在并发环境下已经高效了很多了。但是在高并发下，">
+<meta property="og:updated_time" content="2017-03-30T10:34:58.628Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LongAdder & LongAccumulator">
+<meta name="twitter:description" content="在JDK1.8中，java.util.concurrent.atomic包下增加了几个类:LongAdder、LongAccumulator、DoubleAdder、DoubleAccumulator，都是原Atomic的改进版。
+在原Atomic系列类中，通过CAS的方式来保证在并发环境下的原子性，相对于synchronized和lock的方式来说，在并发环境下已经高效了很多了。但是在高并发下，">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-LongAdder&amp;LongAccumulator" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/03/18/LongAdder&LongAccumulator/" class="article-date">
+  <time datetime="2016-03-17T16:00:00.000Z" itemprop="datePublished">2016-03-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/jdk-8/">jdk 8</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      LongAdder &amp; LongAccumulator
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在JDK1.8中，java.util.concurrent.atomic包下增加了几个类:LongAdder、LongAccumulator、DoubleAdder、DoubleAccumulator，都是原Atomic的改进版。</p>
+<p>在原Atomic系列类中，通过CAS的方式来保证在并发环境下的原子性，相对于synchronized和lock的方式来说，在并发环境下已经高效了很多了。但是在高并发下，CAS造作的失败率也会增加很多，失败率的增加导致了更多线程的重试，不仅浪费资源，也导致Atomic的效率降低。</p>
+<p>通过对Atomic在高并发下的分析可以发现，瓶颈在于对单一value进行CAS操作失败率的增高，那有没有办法降低对单一value的CAS操作呢？在新的LongAdder中（以LongAdder举例），在高并发环境下，将单一value的CAS压力分担到多个的value上去，从而降低了失败率，提高了性能。</p>
+<h3 id="1-LongAdder"><a href="#1-LongAdder" class="headerlink" title="1.LongAdder"></a>1.LongAdder</h3><p>LongAdder继承自Striped64，而Striped64是实现在高并发下将压力分摊到不同value下的关键，并维护这些value。</p>
+<p>LongAdder里的方法和Atomic里提供的方法很相似。</p>
+<p>首先看add方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">long</span> x)</span> </span>&#123;</div><div class="line">	Cell[] as; <span class="keyword">long</span> b, v; <span class="keyword">int</span> m; Cell a;</div><div class="line">	<span class="keyword">if</span> ((as = cells) != <span class="keyword">null</span> || !casBase(b = base, b + x)) &#123;</div><div class="line">	    <span class="comment">//当对base的CAS操作失败后会进入</span></div><div class="line">		<span class="keyword">boolean</span> uncontended = </div><div class="line">		<span class="keyword">if</span> (as == <span class="keyword">null</span> || (m = as.length - <span class="number">1</span>) &lt; <span class="number">0</span> ||</div><div class="line">			(a = as[getProbe() &amp; m]) == <span class="keyword">null</span> ||</div><div class="line">			!(uncontended = a.cas(v = a.value, v + x)))</div><div class="line">			<span class="comment">//拿不到当前线程对应的cell或者对其CAS失败</span></div><div class="line">			longAccumulate(x, <span class="keyword">null</span>, uncontended);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在最开始，拿到了一个Cell的数组，这个Cell是Striped64的一个内部类，顾名思义，是Striped64用来分摊CAS压力的一个最小单元：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@sun</span>.misc.Contended <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Cell</span> </span>&#123;</div><div class="line">	<span class="keyword">volatile</span> <span class="keyword">long</span> value;</div><div class="line">	Cell(<span class="keyword">long</span> x) &#123; value = x; &#125;</div><div class="line">	<span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">cas</span><span class="params">(<span class="keyword">long</span> cmp, <span class="keyword">long</span> val)</span> </span>&#123;</div><div class="line">		<span class="keyword">return</span> UNSAFE.compareAndSwapLong(<span class="keyword">this</span>, valueOffset, cmp, val);</div><div class="line">	&#125;</div><div class="line">	<span class="comment">// Unsafe mechanics</span></div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> sun.misc.Unsafe UNSAFE;</div><div class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> valueOffset;</div><div class="line">	<span class="keyword">static</span> &#123;</div><div class="line">		<span class="keyword">try</span> &#123;</div><div class="line">			UNSAFE = sun.misc.Unsafe.getUnsafe();</div><div class="line">			Class&lt;?&gt; ak = Cell.class;</div><div class="line">			valueOffset = UNSAFE.objectFieldOffset</div><div class="line">				(ak.getDeclaredField(<span class="string">"value"</span>));</div><div class="line">		&#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>sun.misc.Contended是对cache line进行填充，避免<code>false sharing</code>，JDK1.8中可以用该annotation而不是前后各加7个long，在这里不过多解释。<br>而Cell里的value，就是用来分担CAS更新的其中一个value，Cell里提供了对应的CAS操作。</p>
+<p>我们回到add方法里。当并发很低的时候，基本没有CAS失败，所以通常情况下到第三行<code>!casBase(b = base, b + x)</code>中就进行了CAS操作；但是在并发量升高后，就会进入后续的判断,首先去拿Cell数组，并验证，根据当前线程的hash值，去拿Cell[]里的对应Cell，并对其的value进行CAS操作，如果Cell为null或者更新失败，就会进入Striped64的longAccumulate里进行操作。</p>
+<p>longAccumulate过于复杂，暂时留在这里。</p>
+<p>LongAdder还支持自增，自减操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</div><div class="line">    add(<span class="number">1L</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">decrement</span><span class="params">()</span> </span>&#123;</div><div class="line">    add(-<span class="number">1L</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>取值操作通过sum()来实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">sum</span><span class="params">()</span> </span>&#123;</div><div class="line">    Cell[] as = cells; Cell a;</div><div class="line">    <span class="keyword">long</span> sum = base;</div><div class="line">    <span class="keyword">if</span> (as != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; as.length; ++i) &#123;</div><div class="line">            <span class="keyword">if</span> ((a = as[i]) != <span class="keyword">null</span>)</div><div class="line">                sum += a.value;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sum;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>即累加上所有value的值，即为最终的结果。<br>需要注意的是，同ConcurrentHashMap的size()一样，在取值的时候，并一定是当前的准确值。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reset</span><span class="params">()</span> </span>&#123;</div><div class="line">    Cell[] as = cells; Cell a;</div><div class="line">    base = <span class="number">0L</span>;</div><div class="line">    <span class="keyword">if</span> (as != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; as.length; ++i) &#123;</div><div class="line">            <span class="keyword">if</span> ((a = as[i]) != <span class="keyword">null</span>)</div><div class="line">                a.value = <span class="number">0L</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>通过reset操作，将所有value置为0。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">sumThenReset</span><span class="params">()</span> </span>&#123;</div><div class="line">    Cell[] as = cells; Cell a;</div><div class="line">    <span class="keyword">long</span> sum = base;</div><div class="line">    base = <span class="number">0L</span>;</div><div class="line">    <span class="keyword">if</span> (as != <span class="keyword">null</span>) &#123;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; as.length; ++i) &#123;</div><div class="line">            <span class="keyword">if</span> ((a = as[i]) != <span class="keyword">null</span>) &#123;</div><div class="line">                sum += a.value;</div><div class="line">                a.value = <span class="number">0L</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sum;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>以及拿结果后reset</p>
+<h3 id="2-LongAccumulator"><a href="#2-LongAccumulator" class="headerlink" title="2.LongAccumulator"></a>2.LongAccumulator</h3><p>LongAccumulator和LongAdder大同小异，只不过需要指定计算方法以及初始值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">LongAccumulator</span><span class="params">(LongBinaryOperator accumulatorFunction,</span></span></div><div class="line">                       <span class="keyword">long</span> identity) &#123;</div><div class="line">    <span class="keyword">this</span>.function = accumulatorFunction;</div><div class="line">    base = <span class="keyword">this</span>.identity = identity;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>而这个accumulatorFunction即为对数值的计算方法，支持各种自定义运算。</p>
+<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h3><p>通过对源码的分析，可以看出Doug Lea在对并发做处理的时候，优先考虑简单的更新办法，在当前没有更好的办法的情况下，再做出后续的处理，用空间去换时间。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/03/18/LongAdder&LongAccumulator/" data-id="cj0w9kh9o0000a4skulan4rsd" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/03/21/False sharing/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          False sharing
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/01/21/ByteCode/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">ByteCode</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/MongoDB/">MongoDB</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/architecture/">architecture</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/jdk-8/">jdk 8</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/03/30/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2016/09/20/Contravariance & Covariance In Java Generics/">Contravariance &amp; Covariance in Java Generics</a>
+          </li>
+        
+          <li>
+            <a href="/2016/08/15/Reference type of volatile/">Reference type of volatile</a>
+          </li>
+        
+          <li>
+            <a href="/2016/05/24/MongoDB Tutorial ①安装及基本概念/">MongoDB Tutorial ①安装及基本概念</a>
+          </li>
+        
+          <li>
+            <a href="/2016/03/22/Striped64/">Striped64</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

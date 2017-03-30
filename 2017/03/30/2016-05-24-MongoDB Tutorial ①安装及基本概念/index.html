@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>MongoDB Tutorial ①安装及基本概念 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="安装及基本概念
+1.选择适合操作系统的版本MongoDB的安装非常简单，由于我是在服务器上搭建的集群，所以集群搭建在Linux上，环境是CentOS 6.2。其他安装方法可以参考官方Tutorial。
+
+2.Package选择因为32bit系统有2G文件大小限制，官方也不推荐使用，所以直接滤过32bit。
+目前MongoDB最新版本是3.2.6，据官方文档，该版本的性能有所提高，故选择该版本做测试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MongoDB Tutorial ①安装及基本概念">
+<meta property="og:url" content="http://yoursite.com/2017/03/30/2016-05-24-MongoDB Tutorial ①安装及基本概念/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="安装及基本概念
+1.选择适合操作系统的版本MongoDB的安装非常简单，由于我是在服务器上搭建的集群，所以集群搭建在Linux上，环境是CentOS 6.2。其他安装方法可以参考官方Tutorial。
+
+2.Package选择因为32bit系统有2G文件大小限制，官方也不推荐使用，所以直接滤过32bit。
+目前MongoDB最新版本是3.2.6，据官方文档，该版本的性能有所提高，故选择该版本做测试">
+<meta property="og:updated_time" content="2016-05-24T13:36:19.970Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MongoDB Tutorial ①安装及基本概念">
+<meta name="twitter:description" content="安装及基本概念
+1.选择适合操作系统的版本MongoDB的安装非常简单，由于我是在服务器上搭建的集群，所以集群搭建在Linux上，环境是CentOS 6.2。其他安装方法可以参考官方Tutorial。
+
+2.Package选择因为32bit系统有2G文件大小限制，官方也不推荐使用，所以直接滤过32bit。
+目前MongoDB最新版本是3.2.6，据官方文档，该版本的性能有所提高，故选择该版本做测试">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="Flux RSS"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Rechercher"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-2016-05-24-MongoDB Tutorial ①安装及基本概念" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/03/30/2016-05-24-MongoDB Tutorial ①安装及基本概念/" class="article-date">
+  <time datetime="2017-03-30T10:25:29.087Z" itemprop="datePublished">2017-03-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/MongoDB/">MongoDB</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      MongoDB Tutorial ①安装及基本概念
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="安装及基本概念"><a href="#安装及基本概念" class="headerlink" title="安装及基本概念"></a>安装及基本概念</h1><hr>
+<h3 id="1-选择适合操作系统的版本"><a href="#1-选择适合操作系统的版本" class="headerlink" title="1.选择适合操作系统的版本"></a>1.选择适合操作系统的版本</h3><p>MongoDB的安装非常简单，由于我是在服务器上搭建的集群，所以集群搭建在Linux上，环境是CentOS 6.2。其他安装方法可以<a href="https://docs.mongodb.com/manual/installation/" target="_blank" rel="external">参考官方Tutorial</a>。</p>
+<hr>
+<h3 id="2-Package选择"><a href="#2-Package选择" class="headerlink" title="2.Package选择"></a>2.Package选择</h3><p>因为32bit系统有2G文件大小限制，官方也不推荐使用，所以直接滤过32bit。</p>
+<p>目前MongoDB最新版本是3.2.6，据官方文档，该版本的性能有所提高，故选择该版本做测试。</p>
+<p>官方提供的Package一共有5个：</p>
+<table>
+<thead>
+<tr>
+<th>mongodb-org</th>
+<th>A metapackage that will automatically install the four component packages listed below.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mongodb-org-server</td>
+<td>Contains the mongod daemon and associated configuration and init scripts.</td>
+</tr>
+<tr>
+<td>mongodb-org-mongos</td>
+<td>Contains the mongos daemon.</td>
+</tr>
+<tr>
+<td>mongodb-org-shell</td>
+<td>Contains the mongo shell.</td>
+</tr>
+<tr>
+<td>mongodb-org-tools</td>
+<td>Contains the following MongoDB tools: mongoimport bsondump, mongodump, mongoexport, mongofiles, mongooplog, mongoperf, mongorestore, mongostat, and mongotop.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="3-Install-yum"><a href="#3-Install-yum" class="headerlink" title="3.Install (yum)"></a>3.Install (yum)</h3><h6 id="①-创建-repo"><a href="#①-创建-repo" class="headerlink" title="① 创建 .repo"></a>① 创建 .repo</h6><p>创建yum的resp文件： /etc/yum.repos.d/mongodb-org-3.2.repo<br>并写入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">[mongodb-org-3.2]</div><div class="line">name=MongoDB Repository</div><div class="line">baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.2/x86_64/</div><div class="line">gpgcheck=1</div><div class="line">enabled=1</div><div class="line">gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc</div></pre></td></tr></table></figure>
+<h6 id="②-安装"><a href="#②-安装" class="headerlink" title="② 安装"></a>② 安装</h6><p>如果直接安装全部package，直接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install -y mongodb-org</div></pre></td></tr></table></figure>
+<p>或者指定package和version：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install -y mongodb-org-3.2.6 mongodb-org-server-3.2.6 mongodb-org-shell-3.2.6 mongodb-org-mongos-3.2.6 mongodb-org-tools-3.2.6</div></pre></td></tr></table></figure>
+<h6 id="③-关闭SELinux的权限限制（如果有）"><a href="#③-关闭SELinux的权限限制（如果有）" class="headerlink" title="③ 关闭SELinux的权限限制（如果有）"></a>③ 关闭SELinux的权限限制（如果有）</h6><p>定位到/etc/selinux/config</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">SELINUX=disabled</div></pre></td></tr></table></figure>
+<hr>
+<h3 id="4-启动"><a href="#4-启动" class="headerlink" title="4.启动"></a>4.启动</h3><p>至此，已经安装完毕，即可启动MongoDB了。官方文档使用service的方式来启动：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo service mongod start</div></pre></td></tr></table></figure>
+<p>但是由于在测试环境，很多参数需要不断添加，故在测试中没使用该方式。习惯于创建一个owner是mongod的目录，并手动指定参数，比如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">[xxx@l-xxx.wap.beta.cn0 ~]$ cd /home/q/mongo</div><div class="line">[xxx@l-xxx.wap.beta.cn0 /home/q/mongo]$ ll</div><div class="line">total 16</div><div class="line">drwxr-xr-x 2 mongod mongod 4096 May 23 20:57 log</div><div class="line">drwxr-xr-x 4 mongod mongod 4096 May 24 19:51 s1</div><div class="line">drwxr-xr-x 2 mongod mongod 4096 May 23 18:13 s2</div><div class="line">drwxr-xr-x 2 mongod mongod 4096 May 23 18:13 s3</div><div class="line">[xxx@l-xxx.wap.beta.cn0 /home/q/mongo]$ sudo -u mongod mongod --dbpath ./s1/ --port 29001 --fork --logpath ./log/s1.log --logappend</div><div class="line">about to fork child process, waiting until server is ready for connections.</div><div class="line">forked process: 7211</div><div class="line">child process started successfully, parent exiting</div><div class="line">[xxx@l-xxx.wap.beta.cn0 /home/q/mongo]$  mongo --port 29001</div><div class="line">MongoDB shell version: 3.2.6</div><div class="line">connecting to: 127.0.0.1:29001/test</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>MongoDB和关系型数据库，如MySQL很类似也有数据库的概念。默认登录MongoDB以后，使用的是test库，我们可以使用<code>db</code>命令来查看：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; db</div><div class="line">test</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>当然也可以用<code>show dbs</code>命令查看当前所有的数据库：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; show dbs</div><div class="line">local    3.845GB</div><div class="line">record  33.071GB</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>如果要切换数据库，用<code>use &lt;db-name&gt;</code>来切换：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; use record</div><div class="line">switched to db record</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>在db下，分别有很多集合(collections)，等同于MySQL的table。可以用<code>show collections</code>命令来查看：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; show collections</div><div class="line">test</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<hr>
+<h3 id="5-CRUD"><a href="#5-CRUD" class="headerlink" title="5.CRUD"></a>5.CRUD</h3><h6 id="Insert"><a href="#Insert" class="headerlink" title="Insert"></a>Insert</h6><p>在MongoDB中，通常使用<code>db.collection.insert()</code>来插入数据：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; db.records.insert(</div><div class="line">    &#123;</div><div class="line">        <span class="attr">foo</span>: <span class="string">"asdf"</span>,</div><div class="line">        <span class="attr">bar</span>: <span class="string">"qwerty"</span></div><div class="line">    &#125;</div><div class="line">)</div><div class="line">WriteResult(&#123; <span class="string">"nInserted"</span> : <span class="number">1</span> &#125;)</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>WriteResult里会对当前的操作进行统计，上面的结果表示成功插入1条数据。</p>
+<p>然后可以直接用<code>db.collection.find()</code>来查看：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; db.test.find()</div><div class="line">&#123; <span class="string">"_id"</span> : ObjectId(<span class="string">"5744517551076b823ea49fd2"</span>), <span class="string">"foo"</span> : <span class="string">"asdf"</span>, <span class="string">"bar"</span> : <span class="string">"qwerty"</span> &#125;</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>可以加.pretty()来格式化json：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; db.test.find().pretty()</div><div class="line">&#123;</div><div class="line">	<span class="string">"_id"</span> : ObjectId(<span class="string">"5744517551076b823ea49fd2"</span>),</div><div class="line">	<span class="string">"foo"</span> : <span class="string">"asdf"</span>,</div><div class="line">	<span class="string">"bar"</span> : <span class="string">"qwerty"</span></div><div class="line">&#125;</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>更多insert操作请参考<a href="https://docs.mongodb.com/manual/tutorial/insert-documents/" target="_blank" rel="external">Insert Documents</a></p>
+<h6 id="Query"><a href="#Query" class="headerlink" title="Query"></a>Query</h6><p>我们可以指定查询条件，进行精确查找、或者匹配</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; db.test.find(&#123;<span class="attr">foo</span>:<span class="string">"asdf"</span>&#125;).pretty()</div><div class="line">&#123;</div><div class="line">	<span class="string">"_id"</span> : ObjectId(<span class="string">"5744517551076b823ea49fd2"</span>),</div><div class="line">	<span class="string">"foo"</span> : <span class="string">"asdf"</span>,</div><div class="line">	<span class="string">"bar"</span> : <span class="string">"qwerty"</span></div><div class="line">&#125;</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>当然结果和上面一样。更多请参考<a href="https://docs.mongodb.com/manual/tutorial/query-documents/" target="_blank" rel="external">Query Documents</a></p>
+<h6 id="Modify"><a href="#Modify" class="headerlink" title="Modify"></a>Modify</h6><p>修改通常使用<code>db.collection.update()</code>来做修改：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; db.test.update(</div><div class="line">    &#123; <span class="attr">foo</span>: <span class="string">"asdf"</span> &#125;,</div><div class="line">    &#123;</div><div class="line">        <span class="attr">$set</span>: &#123;</div><div class="line">            <span class="attr">bar</span>: <span class="string">"aaaa"</span>,</div><div class="line">            <span class="attr">price</span>: <span class="number">15</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">)</div><div class="line">WriteResult(&#123; <span class="string">"nMatched"</span> : <span class="number">1</span>, <span class="string">"nUpserted"</span> : <span class="number">0</span>, <span class="string">"nModified"</span> : <span class="number">1</span> &#125;)</div><div class="line">MongoDB Enterprise &gt; db.test.find().pretty()</div><div class="line">&#123;</div><div class="line">	<span class="string">"_id"</span> : ObjectId(<span class="string">"5744517551076b823ea49fd2"</span>),</div><div class="line">	<span class="string">"foo"</span> : <span class="string">"asdf"</span>,</div><div class="line">	<span class="string">"bar"</span> : <span class="string">"aaaa"</span>,</div><div class="line">	<span class="string">"price"</span> : <span class="number">15</span></div><div class="line">&#125;</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>更多请参考<a href="https://docs.mongodb.com/manual/tutorial/modify-documents/" target="_blank" rel="external">Update Documents</a></p>
+<h6 id="Remove"><a href="#Remove" class="headerlink" title="Remove"></a>Remove</h6><p>删除通常用<code>db.collection.remove()</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MongoDB Enterprise &gt; db.test.remove(&#123;<span class="attr">foo</span>:<span class="string">"asdf"</span>&#125;)</div><div class="line">WriteResult(&#123; <span class="string">"nRemoved"</span> : <span class="number">1</span> &#125;)</div><div class="line">MongoDB Enterprise &gt;</div></pre></td></tr></table></figure>
+<p>同样的，这里添加了删除条件，而”nRemoved”代表删除的数量。<br>更多参考<a href="https://docs.mongodb.com/manual/tutorial/remove-documents/" target="_blank" rel="external">Remove Documents</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/03/30/2016-05-24-MongoDB Tutorial ①安装及基本概念/" data-id="cj0w9fzv80007issk35gf8u2a" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/03/30/2016-08-15-Reference type of volatile/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Récent</strong>
+      <div class="article-nav-title">
+        
+          Reference type of volatile
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/03/30/2016-03-22-java-Striped64/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Ancien</strong>
+      <div class="article-nav-title">Striped64</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Catégories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/MongoDB/">MongoDB</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/architecture/">architecture</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/jdk-8/">jdk 8</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Articles récents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/03/30/2016-09-20-Contravariance & Covariance In Java Generics/">Contravariance &amp; Covariance in Java Generics</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-08-15-Reference type of volatile/">Reference type of volatile</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-05-24-MongoDB Tutorial ①安装及基本概念/">MongoDB Tutorial ①安装及基本概念</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-03-22-java-Striped64/">Striped64</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-03-21-java-False sharing/">False sharing</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

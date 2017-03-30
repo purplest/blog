@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Striped64 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="在上上篇blog中，介绍了LongAdder、LongAccumulator这两个类，但是还没说实现longAccumulate的Striped64类，这篇单独说之。
+在LongAdder里边提到了Cell[]，其实关键在于维护这一系列并发的状态，而longAccumulate维护了这些状态。
+简单来说，Cell[]一共有三种状态：
+①Cell[]已经初始化；
+②Cell[]未被初始化并且拿到了操">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Striped64">
+<meta property="og:url" content="http://yoursite.com/2017/03/30/2016-03-22-java-Striped64/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="在上上篇blog中，介绍了LongAdder、LongAccumulator这两个类，但是还没说实现longAccumulate的Striped64类，这篇单独说之。
+在LongAdder里边提到了Cell[]，其实关键在于维护这一系列并发的状态，而longAccumulate维护了这些状态。
+简单来说，Cell[]一共有三种状态：
+①Cell[]已经初始化；
+②Cell[]未被初始化并且拿到了操">
+<meta property="og:updated_time" content="2016-04-12T09:15:21.844Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Striped64">
+<meta name="twitter:description" content="在上上篇blog中，介绍了LongAdder、LongAccumulator这两个类，但是还没说实现longAccumulate的Striped64类，这篇单独说之。
+在LongAdder里边提到了Cell[]，其实关键在于维护这一系列并发的状态，而longAccumulate维护了这些状态。
+简单来说，Cell[]一共有三种状态：
+①Cell[]已经初始化；
+②Cell[]未被初始化并且拿到了操">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="Flux RSS"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Rechercher"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-2016-03-22-java-Striped64" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/03/30/2016-03-22-java-Striped64/" class="article-date">
+  <time datetime="2017-03-30T10:25:29.085Z" itemprop="datePublished">2017-03-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/jdk-8/">jdk 8</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Striped64
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在上上篇blog中，介绍了LongAdder、LongAccumulator这两个类，但是还没说实现longAccumulate的Striped64类，这篇单独说之。</p>
+<p>在LongAdder里边提到了Cell[]，其实关键在于维护这一系列并发的状态，而longAccumulate维护了这些状态。</p>
+<p>简单来说，Cell[]一共有三种状态：</p>
+<p>①Cell[]已经初始化；</p>
+<p>②Cell[]未被初始化并且拿到了操作Cell[]的锁cellsBusy；</p>
+<p>③Cell[]未被初始化并且没拿到cellsBusy锁；</p>
+<ul>
+<li>对于状态①，则在初始化的Cell[]里边进行操作即可；</li>
+<li>对于状态②，既然拿到了锁cellsBusy，则初始化Cell[]并在初始化完后释放cellsBusy锁即可。</li>
+<li>对于状态③，Cell[]未被初始化并且没拿到锁，说明Cell[]正在被初始化，也从侧面说明现在对base的竞争并不激烈，所以回退去使用base即可。</li>
+</ul>
+<p>下面详细对源码进行解析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">longAccumulate</span><span class="params">(<span class="keyword">long</span> x, LongBinaryOperator fn,</span></span></div><div class="line">                                    <span class="keyword">boolean</span> wasUncontended) &#123;</div><div class="line">   <span class="keyword">int</span> h;</div><div class="line">   <span class="comment">//当前进程未被初始化（从1开始计数）</span></div><div class="line">   <span class="keyword">if</span> ((h = getProbe()) == <span class="number">0</span>) &#123;</div><div class="line">      <span class="comment">//强制初始化</span></div><div class="line">      ThreadLocalRandom.current();</div><div class="line">      h = getProbe();</div><div class="line">      wasUncontended = <span class="keyword">true</span>;</div><div class="line">   &#125;</div><div class="line">   <span class="keyword">boolean</span> collide = <span class="keyword">false</span>;    <span class="comment">// True if last slot nonempty</span></div><div class="line">   <span class="keyword">for</span> (;;) &#123;</div><div class="line">      Cell[] as; Cell a; <span class="keyword">int</span> n; <span class="keyword">long</span> v;</div><div class="line">      <span class="comment">//状态①：Cell[]已初始化</span></div><div class="line">      <span class="keyword">if</span> ((as = cells) != <span class="keyword">null</span> &amp;&amp; (n = as.length) &gt; <span class="number">0</span>) &#123;</div><div class="line">         <span class="comment">//当前选择的slot是null的，则需要去初始化当前slot</span></div><div class="line">         <span class="keyword">if</span> ((a = as[(n - <span class="number">1</span>) &amp; h]) == <span class="keyword">null</span>) &#123;</div><div class="line">            <span class="comment">//先去看能否拿到cellsBusy</span></div><div class="line">            <span class="keyword">if</span> (cellsBusy == <span class="number">0</span>) &#123;</div><div class="line">               <span class="comment">//认为没有人去拿锁，先初始化Cell（即乐观锁）</span></div><div class="line">               Cell r = <span class="keyword">new</span> Cell(x);</div><div class="line">               <span class="comment">//初始化完后再去拿锁</span></div><div class="line">               <span class="keyword">if</span> (cellsBusy == <span class="number">0</span> &amp;&amp; casCellsBusy()) &#123;</div><div class="line">                  <span class="keyword">boolean</span> created = <span class="keyword">false</span>;</div><div class="line">                  <span class="keyword">try</span> &#123;               <span class="comment">// Recheck under lock</span></div><div class="line">                     Cell[] rs; <span class="keyword">int</span> m, j;</div><div class="line">                     <span class="comment">//拿到锁的情况下再确认当前slot是否为null</span></div><div class="line">                     <span class="keyword">if</span> ((rs = cells) != <span class="keyword">null</span> &amp;&amp;</div><div class="line">                        (m = rs.length) &gt; <span class="number">0</span> &amp;&amp;</div><div class="line">                        rs[j = (m - <span class="number">1</span>) &amp; h] == <span class="keyword">null</span>) &#123;</div><div class="line">                        <span class="comment">//关联到当前位置的Cell</span></div><div class="line">                        rs[j] = r;</div><div class="line">                        created = <span class="keyword">true</span>;</div><div class="line">                     &#125;</div><div class="line">                  &#125; <span class="keyword">finally</span> &#123;</div><div class="line">                     <span class="comment">//释放锁</span></div><div class="line">                     cellsBusy = <span class="number">0</span>;</div><div class="line">                  &#125;</div><div class="line">                  <span class="keyword">if</span> (created)</div><div class="line">                     <span class="comment">//成功创建并关联到当前位置的Cell</span></div><div class="line">                     <span class="keyword">break</span>;</div><div class="line">                  <span class="comment">//否则slot不为null</span></div><div class="line">                  <span class="keyword">continue</span>;</div><div class="line">               &#125;</div><div class="line">            &#125;</div><div class="line">            <span class="comment">//没能拿到cellsBusy锁，重新选择slot</span></div><div class="line">            collide = <span class="keyword">false</span>;</div><div class="line">         &#125;</div><div class="line">         <span class="comment">//已经知道CAS会失败了，则重新选择slot后再继续</span></div><div class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (!wasUncontended)</div><div class="line">            wasUncontended = <span class="keyword">true</span>;</div><div class="line">          <span class="comment">//当前slot非null，则去试着CAS更新</span></div><div class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (a.cas(v = a.value, ((fn == <span class="keyword">null</span>) ? v + x :</div><div class="line">                                    fn.applyAsLong(v, x))))</div><div class="line">            <span class="comment">//更新成功</span></div><div class="line">            <span class="keyword">break</span>;</div><div class="line">         <span class="comment">//超过CPU数限制or当前Cell[]已经扩容了</span></div><div class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (n &gt;= NCPU || cells != as)</div><div class="line">            collide = <span class="keyword">false</span>;</div><div class="line">         <span class="comment">//如果没有竞争，则标记为存在竞争，并重新选择slot重试</span></div><div class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (!collide)</div><div class="line">            collide = <span class="keyword">true</span>;</div><div class="line">         <span class="comment">//有竞争，并且拿到了cellsBusy锁，则进行扩容</span></div><div class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (cellsBusy == <span class="number">0</span> &amp;&amp; casCellsBusy()) &#123;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">               <span class="comment">// 再check一下Cell[]是否有过扩容</span></div><div class="line">               <span class="keyword">if</span> (cells == as) &#123;</div><div class="line">                  <span class="comment">//容量翻倍</span></div><div class="line">                  Cell[] rs = <span class="keyword">new</span> Cell[n &lt;&lt; <span class="number">1</span>];</div><div class="line">                  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i)</div><div class="line">                     rs[i] = as[i];</div><div class="line">                  cells = rs;</div><div class="line">               &#125;</div><div class="line">            &#125; <span class="keyword">finally</span> &#123;</div><div class="line">               <span class="comment">//释放cellsBusy锁</span></div><div class="line">               cellsBusy = <span class="number">0</span>;</div><div class="line">            &#125;</div><div class="line">            collide = <span class="keyword">false</span>;</div><div class="line">            <span class="comment">//在扩容后的Cell上重试</span></div><div class="line">            <span class="keyword">continue</span>;</div><div class="line">         &#125;</div><div class="line">         <span class="comment">//rehash，选择其他slot</span></div><div class="line">         h = advanceProbe(h);</div><div class="line">      &#125;</div><div class="line">      <span class="comment">//状态②：Cell[]未被初始化，并且拿到了cellsBusy锁</span></div><div class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (cellsBusy == <span class="number">0</span> &amp;&amp; cells == as &amp;&amp; casCellsBusy()) &#123;</div><div class="line">         <span class="keyword">boolean</span> init = <span class="keyword">false</span>;</div><div class="line">         <span class="comment">//初始化Cell[]</span></div><div class="line">         <span class="keyword">try</span> &#123;</div><div class="line">            <span class="keyword">if</span> (cells == as) &#123;</div><div class="line">               Cell[] rs = <span class="keyword">new</span> Cell[<span class="number">2</span>];</div><div class="line">               rs[h &amp; <span class="number">1</span>] = <span class="keyword">new</span> Cell(x);</div><div class="line">               cells = rs;</div><div class="line">               init = <span class="keyword">true</span>;</div><div class="line">            &#125;</div><div class="line">         &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            <span class="comment">//释放cellsBusy锁</span></div><div class="line">            cellsBusy = <span class="number">0</span>;</div><div class="line">         &#125;</div><div class="line">         <span class="keyword">if</span> (init)</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">      &#125;</div><div class="line">      <span class="comment">//状态③：Cell[]正在被初始化，回退到CAS base</span></div><div class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (casBase(v = base, ((fn == <span class="keyword">null</span>) ? v + x :</div><div class="line">                               fn.applyAsLong(v, x))))</div><div class="line">         <span class="keyword">break</span>;</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>总结:</p>
+<p>Striped64实现了对Cell[]的维护以及选取slot更新，是LongAdder、LongAccumulator等类的基础。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/03/30/2016-03-22-java-Striped64/" data-id="cj0w9fzv60006isskedsmjqin" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/03/30/2016-05-24-MongoDB Tutorial ①安装及基本概念/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Récent</strong>
+      <div class="article-nav-title">
+        
+          MongoDB Tutorial ①安装及基本概念
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/03/30/2016-03-21-java-False sharing/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Ancien</strong>
+      <div class="article-nav-title">False sharing</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Catégories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/MongoDB/">MongoDB</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/architecture/">architecture</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/jdk-8/">jdk 8</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">January 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Articles récents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/03/30/2016-09-20-Contravariance & Covariance In Java Generics/">Contravariance &amp; Covariance in Java Generics</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-08-15-Reference type of volatile/">Reference type of volatile</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-05-24-MongoDB Tutorial ①安装及基本概念/">MongoDB Tutorial ①安装及基本概念</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-03-22-java-Striped64/">Striped64</a>
+          </li>
+        
+          <li>
+            <a href="/2017/03/30/2016-03-21-java-False sharing/">False sharing</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 John Doe<br>
+      Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
