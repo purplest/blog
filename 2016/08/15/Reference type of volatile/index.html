@@ -5,16 +5,16 @@
   
   <title>Reference type of volatile | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Reference type of volatile众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，bool">
+  <meta name="description" content="众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，boolean作为开关，int作为计数器 or versio">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Reference type of volatile">
 <meta property="og:url" content="http://purplest.github.io/newblog/2016/08/15/Reference type of volatile/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Reference type of volatile众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，bool">
-<meta property="og:updated_time" content="2017-03-30T10:33:25.791Z">
+<meta property="og:description" content="众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，boolean作为开关，int作为计数器 or versio">
+<meta property="og:updated_time" content="2017-03-30T11:06:01.082Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Reference type of volatile">
-<meta name="twitter:description" content="Reference type of volatile众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，bool">
+<meta name="twitter:description" content="众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，boolean作为开关，int作为计数器 or versio">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -54,7 +54,7 @@
         
           <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
         
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+        <a id="nav-search-btn" class="nav-icon" title="Søk"></a>
       </nav>
       <div id="search-form-wrap">
         <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://purplest.github.io/newblog"></form>
@@ -89,7 +89,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Reference-type-of-volatile"><a href="#Reference-type-of-volatile" class="headerlink" title="Reference type of volatile"></a>Reference type of volatile</h1><p>众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，boolean作为开关，int作为计数器 or version ID。</p>
+        <p>众所周知，在Java中，由JMM保证了volatile的顺序性以及可见性，并且能看到很多介绍volatile的文章，但是大家在介绍volatile的时候，似乎都在着重说明volatile的语义，以及JVM如何在跨平台的时候插入内存屏障来保证volatile的特性的，而在举例子的时候，似乎都是用primitive type作为例子的，比如，boolean作为开关，int作为计数器 or version ID。</p>
 <p>但是一直有个疑问，对于reference type，JVM到底是如何保证volatile的语义的呢？会不会像final一样，仅仅只是修饰这个reference呢？带着这个疑问，咱们尝试通过汇编代码来一探究竟。</p>
 <h3 id="0-准备工具"><a href="#0-准备工具" class="headerlink" title="0.准备工具"></a>0.准备工具</h3><p>显然，普通方法是没办法查看到对应的汇编代码的。通过javac xxx只能看到对应的bytecode，对底层的内存屏障之类的东西，其实还是透明的。so，咱们需要引入一个小工具，它叫hsdis。</p>
 <p>关于这个小工具，有很多办法可以获取，<a href="https://kenai.com/projects/base-hsdis/downloads" target="_blank" rel="external">Kenai官方</a>提供了bsd、linux以及solaris所对应的.so，选择对应的CPU架构即可（i386 or amd64）。</p>
@@ -122,7 +122,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://purplest.github.io/newblog/newblog/2016/08/15/Reference type of volatile/" data-id="cj0wamxrb00077sskkfaby5rs" class="article-share-link">Share</a>
+      <a data-url="http://purplest.github.io/newblog/newblog/2016/08/15/Reference type of volatile/" data-id="cj0waogb400095wskep504gjv" class="article-share-link">Share</a>
       
       
     </footer>
@@ -157,7 +157,7 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Categories</h3>
+    <h3 class="widget-title">Kategorier</h3>
     <div class="widget">
       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/newblog/categories/MongoDB/">MongoDB</a></li><li class="category-list-item"><a class="category-list-link" href="/newblog/categories/architecture/">architecture</a></li><li class="category-list-item"><a class="category-list-link" href="/newblog/categories/jdk-8/">jdk 8</a></li></ul>
     </div>
@@ -172,9 +172,9 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
+    <h3 class="widget-title">Arkiv</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2015/01/">January 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/newblog/archives/2015/01/">January 2015</a></li></ul>
     </div>
   </div>
 
@@ -182,13 +182,9 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
+    <h3 class="widget-title">Siste innlegg</h3>
     <div class="widget">
       <ul>
-        
-          <li>
-            <a href="/newblog/2017/03/30/hello-world/">Hello World</a>
-          </li>
         
           <li>
             <a href="/newblog/2016/09/20/Contravariance & Covariance In Java Generics/">Contravariance &amp; Covariance in Java Generics</a>
@@ -204,6 +200,10 @@
         
           <li>
             <a href="/newblog/2016/03/22/Striped64/">Striped64</a>
+          </li>
+        
+          <li>
+            <a href="/newblog/2016/03/21/False sharing/">False sharing</a>
           </li>
         
       </ul>
