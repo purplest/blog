@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>一个诡异的MySQL慢查询问题复盘 | 404 Not Found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="起因在周五的下午，群里接到反馈，在生产坏境的MySQL实例上有大量的慢查询，导致了大面积的熔断，部分线上业务受影响。
+MySQL的慢查询见多了，Google一下就是一大票，无非也就是没走索引/SQL写的太烂/各种乱嵌套blablabla，因为不是自己负责的业务，手头正好也有别的事儿，就没太在意，继续去忙了……
+然而，还是太图样图森破，忙完后一看群，发现慢查询的问题还没找出来，只是初步定位到了是一个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一个诡异的MySQL慢查询问题复盘">
+<meta property="og:url" content="http://purplest.github.io/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/index.html">
+<meta property="og:site_name" content="404 Not Found">
+<meta property="og:description" content="起因在周五的下午，群里接到反馈，在生产坏境的MySQL实例上有大量的慢查询，导致了大面积的熔断，部分线上业务受影响。
+MySQL的慢查询见多了，Google一下就是一大票，无非也就是没走索引/SQL写的太烂/各种乱嵌套blablabla，因为不是自己负责的业务，手头正好也有别的事儿，就没太在意，继续去忙了……
+然而，还是太图样图森破，忙完后一看群，发现慢查询的问题还没找出来，只是初步定位到了是一个">
+<meta property="og:updated_time" content="2018-08-04T16:08:35.108Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一个诡异的MySQL慢查询问题复盘">
+<meta name="twitter:description" content="起因在周五的下午，群里接到反馈，在生产坏境的MySQL实例上有大量的慢查询，导致了大面积的熔断，部分线上业务受影响。
+MySQL的慢查询见多了，Google一下就是一大票，无非也就是没走索引/SQL写的太烂/各种乱嵌套blablabla，因为不是自己负责的业务，手头正好也有别的事儿，就没太在意，继续去忙了……
+然而，还是太图样图森破，忙完后一看群，发现慢查询的问题还没找出来，只是初步定位到了是一个">
+  
+    <link rel="alternate" href="/atom.xml" title="404 Not Found" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/blog/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/blog/" id="logo">404 Not Found</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/blog/">Home</a>
+        
+          <a class="main-nav-link" href="/blog/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://purplest.github.io/blog"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-一个诡异的MySQL慢查询问题复盘" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/" class="article-date">
+  <time datetime="2018-08-04T16:00:00.000Z" itemprop="datePublished">2018-08-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/blog/categories/MySQL/">MySQL</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      一个诡异的MySQL慢查询问题复盘
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h3><p>在周五的下午，群里接到反馈，在生产坏境的MySQL实例上有大量的慢查询，导致了大面积的熔断，部分线上业务受影响。</p>
+<p>MySQL的慢查询见多了，Google一下就是一大票，无非也就是没走索引/SQL写的太烂/各种乱嵌套blablabla，因为不是自己负责的业务，手头正好也有别的事儿，就没太在意，继续去忙了……</p>
+<p>然而，还是太图样图森破，忙完后一看群，发现慢查询的问题还没找出来，只是初步定位到了是一个join导致的，瞬间就被激发出了兴趣（当然也一起被带进了坑里），找同事要到了对应的SQL，发现SQL异常的简单：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">select</div><div class="line">  c.c_code as cCode,</div><div class="line">  u.u_code as uCode,</div><div class="line">  h.h_code as hCode</div><div class="line">from c</div><div class="line">join u on c.u_code = u.u_code</div><div class="line">join h on u.h_code = h.h_code</div><div class="line"> WHERE c.c_code = &apos;xxxxxxxxxxxxx&apos;;</div></pre></td></tr></table></figure>
+<p>这么样的SQL会有慢查询？线上跑了这么久的代码会没加索引？看来，事情没有想象的那么简单呐。问同事了解了table的结构后，瞬间傻眼了：c_code、u_code、h_code分别是c、u、h表的一个unique index，这样的SQL能有哪门子的慢查询啊，这还是我认识的MySQL么？简直颠覆了我对MySQL的认知……必须查出到底啥原因，否则真是白用了这么久的MySQL了。</p>
+<h3 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h3><p>遂走到3d童鞋的旁边，3d童鞋也非常熟练的explain plan了一下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line">mysql test@****:**&gt; explain SELECT</div><div class="line">                 -&gt;   c.c_code as cCode,</div><div class="line">                 -&gt;   u.u_code as uCode,</div><div class="line">                 -&gt;   h.h_code as hCode</div><div class="line">                 -&gt; FROM c</div><div class="line">                 -&gt;   join u on c.u_code = u.u_code</div><div class="line">                 -&gt;   join h on h.h_code = u.h_code</div><div class="line">                 -&gt; WHERE c.c_code = &apos;xxxxxxxxxxxxx&apos;\G;</div><div class="line">***************************[ 1. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | c</div><div class="line">type          | const</div><div class="line">possible_keys | uniq_c,idx_u_code</div><div class="line">key           | uniq_c</div><div class="line">key_len       | 82</div><div class="line">ref           | const</div><div class="line">rows          | 1</div><div class="line">Extra         | &lt;null&gt;</div><div class="line">***************************[ 2. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | h</div><div class="line">type          | ALL</div><div class="line">possible_keys | uniq_h_code</div><div class="line">key           | &lt;null&gt;</div><div class="line">key_len       | &lt;null&gt;</div><div class="line">ref           | &lt;null&gt;</div><div class="line">rows          | 3110</div><div class="line">Extra         | &lt;null&gt;</div><div class="line">***************************[ 3. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | u</div><div class="line">type          | ref</div><div class="line">possible_keys | idx_h_code</div><div class="line">key           | idx_h_code</div><div class="line">key_len       | 62</div><div class="line">ref           | **.h.h_code</div><div class="line">rows          | 5</div><div class="line">Extra         | Using where</div><div class="line">3 rows in set</div></pre></td></tr></table></figure>
+<p>我去，妥妥的慢查询啊，这不科学。 仔细分析下这个查询，c和u表都按照我们的设计，走了索引，那问题的关键就是在h表上了：明明找到了uniq_h_code，为啥最终没有走这个唯一索引呢？</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>为了缩小问题的范围，我们决定拆分这个SQL：先试试c与u的join，再试试u与h的join。</p>
+<p>首先explain c与u：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">mysql test@****:**&gt; explain SELECT</div><div class="line">                 -&gt;   c.c_code as cCode,</div><div class="line">                 -&gt;   u.u_code as uCode</div><div class="line">                 -&gt; FROM c</div><div class="line">                 -&gt;   join u on c.u_code = u.u_code</div><div class="line">                 -&gt; WHERE c.c_code = &apos;xxxxxxxxxxxxx&apos;\G;</div><div class="line">***************************[ 1. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | c</div><div class="line">type          | const</div><div class="line">possible_keys | uniq_c,idx_u_code</div><div class="line">key           | uniq_c</div><div class="line">key_len       | 82</div><div class="line">ref           | const</div><div class="line">rows          | 1</div><div class="line">Extra         | &lt;null&gt;</div><div class="line">***************************[ 2. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | u</div><div class="line">type          | index</div><div class="line">possible_keys | &lt;null&gt;</div><div class="line">key           | uniq_u_code</div><div class="line">key_len       | 62</div><div class="line">ref           | &lt;null&gt;</div><div class="line">rows          | 20434</div><div class="line">Extra         | Using where; Using index</div><div class="line">2 rows in set</div></pre></td></tr></table></figure>
+<p>然后是explain u与h：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">mysql test@****:**&gt; explain SELECT</div><div class="line">                 -&gt;   u.u_code as uCode,</div><div class="line">                 -&gt;   h.h_code as hCode</div><div class="line">                 -&gt; FROM u</div><div class="line">                 -&gt;   join h on h.h_code = u.h_code</div><div class="line">                 -&gt; WHERE c.u_code = &apos;xxxxxxxxxxxxx&apos;\G;</div><div class="line">***************************[ 1. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | h</div><div class="line">type          | const</div><div class="line">possible_keys | uniq_h_code</div><div class="line">key           | uniq_h_code</div><div class="line">key_len       | 62</div><div class="line">ref           | const</div><div class="line">rows          | 1</div><div class="line">Extra         | Using index</div><div class="line">***************************[ 2. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | u</div><div class="line">type          | ref</div><div class="line">possible_keys | idx_h_code</div><div class="line">key           | idx_h_code</div><div class="line">key_len       | 62</div><div class="line">ref           | const</div><div class="line">rows          | 1</div><div class="line">Extra         | Using index condition</div><div class="line">2 rows in set</div></pre></td></tr></table></figure>
+<p>答案很明显，u和h的join没任何问题，按照我们的期望走了索引。而c和u的join出现了问题，虽然type是index，但是仍然属于全表扫描的范畴，最为诡异的是，possible_keys里没找到对应的索引……</p>
+<p>为了继续找原因，决定试一试用<code>FORCE INDEX</code>的方式去限制下MySQL的索引使用，仅局限到我们指定的索引上：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">mysql test@****:**&gt; explain SELECT</div><div class="line">                 -&gt;   c.c_code as cCode,</div><div class="line">                 -&gt;   u.u_code as uCode</div><div class="line">                 -&gt; FROM c</div><div class="line">                 -&gt;   join u on c.u_code = u.u_code</div><div class="line">                 -&gt; WHERE c.c_code = &apos;xxxxxxxxxxxxx&apos;\G;</div><div class="line">***************************[ 1. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | c</div><div class="line">type          | const</div><div class="line">possible_keys | uniq_c,idx_u_code</div><div class="line">key           | uniq_c</div><div class="line">key_len       | 82</div><div class="line">ref           | const</div><div class="line">rows          | 1</div><div class="line">Extra         | &lt;null&gt;</div><div class="line">***************************[ 2. row ]***************************</div><div class="line">id            | 1</div><div class="line">select_type   | SIMPLE</div><div class="line">table         | u</div><div class="line">type          | index</div><div class="line">possible_keys | &lt;null&gt;</div><div class="line">key           | uniq_u_code</div><div class="line">key_len       | 62</div><div class="line">ref           | &lt;null&gt;</div><div class="line">rows          | 20434</div><div class="line">Extra         | Using where; Using index</div><div class="line">2 rows in set</div></pre></td></tr></table></figure>
+<p>然而，MySQL继续打我的脸，仍然没有按照预期去走索引，仅仅走了index。</p>
+<p>分析到此暂时就没有了近一步的突破，毕竟explain plan的结果已经颠覆了我对MySQL的认知：明显u表上有u_code唯一索引uniq_u_code，为什么还是不能走索引呢？为此，带着这个问题去请教了我们可爱的DBA童鞋……</p>
+<p>嗯，3个小时后，可爱的DBA童鞋回复了我们：因为c表的charsets是utf8mb4，而u和h表的charsets是utf8，所以join的时候只能走index了……</p>
+<p>果然……事情的真相只有一个啊……</p>
+<p>至于不知道utf8和utf8mb4区别的可以看<a href="http://seanlook.com/2016/10/23/mysql-utf8mb4/" target="_blank" rel="external">这里</a></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在写这篇blog的时候，顺便在Google上检索了一下，发现，有人也踩过<a href="https://mp.weixin.qq.com/s/ns9eRxjXZfUPNSpfgGA7UA" target="_blank" rel="external">同样的坑</a>，charsets果真就是个神坑……生产环境的charsets问题在半个月前被我注意到了，当时认为，没用到emoji不会有啥问题，只是没想到在这种情况下依然被坑，图样图森破啊……</p>
+<p>至于解决方案，自然就是转换生产环境表的charsets了，权当涨姿势吧。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://purplest.github.io/blog/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/" data-id="cjkfm4p6q000cfvvn1bnbctjw" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/blog/2017/04/01/深入理解Zookeeper/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">深入理解Zookeeper</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/blog/categories/MongoDB/">MongoDB</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/MySQL/">MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/Zookeeper/">Zookeeper</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/architecture/">architecture</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/jdk-8/">jdk 8</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/blog/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/blog/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/blog/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/blog/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/blog/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/blog/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/blog/archives/2015/01/">January 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/">一个诡异的MySQL慢查询问题复盘</a>
+          </li>
+        
+          <li>
+            <a href="/blog/2017/04/01/深入理解Zookeeper/">深入理解Zookeeper</a>
+          </li>
+        
+          <li>
+            <a href="/blog/2016/09/20/Contravariance & Covariance In Java Generics/">Contravariance &amp; Covariance in Java Generics</a>
+          </li>
+        
+          <li>
+            <a href="/blog/2016/08/15/Reference type of volatile/">Reference type of volatile</a>
+          </li>
+        
+          <li>
+            <a href="/blog/2016/05/24/MongoDB Tutorial ①安装及基本概念/">MongoDB Tutorial ①安装及基本概念</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 purplest<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/blog/" class="mobile-nav-link">Home</a>
+  
+    <a href="/blog/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/blog/fancybox/jquery.fancybox.css">
+  <script src="/blog/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/blog/js/script.js"></script>
+
+  </div>
+</body>
+</html>
