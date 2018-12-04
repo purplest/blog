@@ -115,15 +115,15 @@
 <meta property="og:site_name" content="404 Not Found">
 <meta property="og:description" content="随着系统的不断发展，分布式锁是所有系统的一个永远绕不开的话题，那么，什么是分布式锁呢？它面临着什么问题？又分别是怎么去解决的呢？欢迎观看走近科学之——分布式锁。 ¶What questions in distributed system we must faced? 要明白分布式锁是怎么回事，首先要明白我们现存的分布式系统。那么，分布式系统需要面临什么问题呢？为了便于理解，并且简化问题，我们先从单">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="http://purplest.github.io/blog/2018/12/03/View%20of%20Distributed%20Lock/images/2pl.png">
-<meta property="og:image" content="http://purplest.github.io/blog/2018/12/03/View%20of%20Distributed%20Lock/images/redis.png">
+<meta property="og:image" content="https://purplest.github.io/blog/images/2pl.png">
+<meta property="og:image" content="https://purplest.github.io/blog/images/redis.png">
 <meta property="og:image" content="http://martin.kleppmann.com/2014/11/isolation-levels.png">
 <meta property="og:image" content="https://purplest.gitbooks.io/zookeeper-source-code/content/assets/cccccc.png">
-<meta property="og:updated_time" content="2018-12-04T04:16:43.470Z">
+<meta property="og:updated_time" content="2018-12-04T04:24:06.896Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="View of Distributed Lock">
 <meta name="twitter:description" content="随着系统的不断发展，分布式锁是所有系统的一个永远绕不开的话题，那么，什么是分布式锁呢？它面临着什么问题？又分别是怎么去解决的呢？欢迎观看走近科学之——分布式锁。 ¶What questions in distributed system we must faced? 要明白分布式锁是怎么回事，首先要明白我们现存的分布式系统。那么，分布式系统需要面临什么问题呢？为了便于理解，并且简化问题，我们先从单">
-<meta name="twitter:image" content="http://purplest.github.io/blog/2018/12/03/View%20of%20Distributed%20Lock/images/2pl.png">
+<meta name="twitter:image" content="https://purplest.github.io/blog/images/2pl.png">
 
 
 
@@ -364,7 +364,7 @@
                 
                   <span class="post-meta-item-text">Edited on</span>
                 
-                <time title="Modified: 2018-12-04 12:16:43" itemprop="dateModified" datetime="2018-12-04T12:16:43+08:00">2018-12-04</time>
+                <time title="Modified: 2018-12-04 12:24:06" itemprop="dateModified" datetime="2018-12-04T12:24:06+08:00">2018-12-04</time>
               
             
           </span>
@@ -538,7 +538,7 @@
 </ol>
 </blockquote>
 <p>具体到MySQL中，使用了2PL的方式，对于每个transaction来说，是这样的一个流程：</p>
-<p><img src="./images/2pl.png" alt="2PL"></p>
+<p><img src="https://purplest.github.io/blog/images/2pl.png" alt="2PL"></p>
 <p>在InnoDB中，通过使用Gap lock，解决了之前提到的Phantoms的问题，很显然，这是一种Pessimistic concurrency control mechanism，在并发量比较轻的地方，如果锁实现的不够好，会有比较严重的性能问题，为了解决锁性能的问题，通常InnoDB会选择使用MVCC的实现方式，去达到了一个很好的性能平衡。</p>
 <p>具体来说，对于snapshot read，很显然，能完全与写操作分离；对与current read，形如<code>SELECT ... FOR SHARE/UPDATE</code>的操作，仍然会对根据情况对record or gap进行加锁。</p>
 <hr>
@@ -580,7 +580,7 @@
 <p>那么，在unlock的时候可以直接使用DEL：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEL lock_key</span><br></pre></td></tr></table></figure>
 <p>那这样就OK了么？有没有什么问题呢？我们考虑一下这样的case：</p>
-<p><img src="images/redis.png" alt="redis"></p>
+<p><img src="https://purplest.github.io/blog/images/redis.png" alt="redis"></p>
 <p>如图，假设session A通过lock拿到锁以后，就去执行相应的业务逻辑。当然，同步调用一旦被阻塞，可能会导致key超时。那么，当session A超时以后，自然session B即可获取到锁。在session B拿到锁以后，session A从阻塞中唤醒，直接去通过del的方式unlock key就会导致锁的错误释放问题。那错误的unlock有办法解决么？</p>
 <hr>
 <h6 id="safe-unlock-type："><a class="header-anchor" href="#safe-unlock-type：">¶</a>Safe-unlock type：</h6>
