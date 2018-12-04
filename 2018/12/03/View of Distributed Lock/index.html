@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/blog/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/blog/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/blog/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/blog/',
+    scheme: 'Muse',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="随着系统的不断发展，分布式锁是所有系统的一个永远绕不开的话题，那么，什么是分布式锁呢？它面临着什么问题？又分别是怎么去解决的呢？欢迎观看走近科学之——分布式锁。 ¶What questions in distributed system we must faced? 要明白分布式锁是怎么回事，首先要明白我们现存的分布式系统。那么，分布式系统需要面临什么问题呢？为了便于理解，并且简化问题，我们先从单">
+<meta property="og:type" content="article">
+<meta property="og:title" content="View of Distributed Lock">
+<meta property="og:url" content="http://purplest.github.io/blog/2018/12/03/View of Distributed Lock/index.html">
+<meta property="og:site_name" content="404 Not Found">
+<meta property="og:description" content="随着系统的不断发展，分布式锁是所有系统的一个永远绕不开的话题，那么，什么是分布式锁呢？它面临着什么问题？又分别是怎么去解决的呢？欢迎观看走近科学之——分布式锁。 ¶What questions in distributed system we must faced? 要明白分布式锁是怎么回事，首先要明白我们现存的分布式系统。那么，分布式系统需要面临什么问题呢？为了便于理解，并且简化问题，我们先从单">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://purplest.github.io/blog/2018/12/03/View%20of%20Distributed%20Lock/images/2pl.png">
+<meta property="og:image" content="http://purplest.github.io/blog/2018/12/03/View%20of%20Distributed%20Lock/images/redis.png">
+<meta property="og:image" content="http://martin.kleppmann.com/2014/11/isolation-levels.png">
+<meta property="og:image" content="https://purplest.gitbooks.io/zookeeper-source-code/content/assets/cccccc.png">
+<meta property="og:updated_time" content="2018-12-04T04:16:43.470Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="View of Distributed Lock">
+<meta name="twitter:description" content="随着系统的不断发展，分布式锁是所有系统的一个永远绕不开的话题，那么，什么是分布式锁呢？它面临着什么问题？又分别是怎么去解决的呢？欢迎观看走近科学之——分布式锁。 ¶What questions in distributed system we must faced? 要明白分布式锁是怎么回事，首先要明白我们现存的分布式系统。那么，分布式系统需要面临什么问题呢？为了便于理解，并且简化问题，我们先从单">
+<meta name="twitter:image" content="http://purplest.github.io/blog/2018/12/03/View%20of%20Distributed%20Lock/images/2pl.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://purplest.github.io/blog/2018/12/03/View of Distributed Lock/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>View of Distributed Lock | 404 Not Found</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/blog/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">404 Not Found</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/blog/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/blog/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2018/12/03/View of Distributed Lock/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="purplest">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="404 Not Found">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">View of Distributed Lock
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2018-12-03 00:00:00" itemprop="dateCreated datePublished" datetime="2018-12-03T00:00:00+08:00">2018-12-03</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2018-12-04 12:16:43" itemprop="dateModified" datetime="2018-12-04T12:16:43+08:00">2018-12-04</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/Distributed-Lock/" itemprop="url" rel="index"><span itemprop="name">Distributed Lock</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>随着系统的不断发展，分布式锁是所有系统的一个永远绕不开的话题，那么，什么是分布式锁呢？它面临着什么问题？又分别是怎么去解决的呢？欢迎观看走近科学之——分布式锁。</p>
+<h3 id="what-questions-in-distributed-system-we-must-faced"><a class="header-anchor" href="#what-questions-in-distributed-system-we-must-faced">¶</a>What questions in distributed system we must faced?</h3>
+<p>要明白分布式锁是怎么回事，首先要明白我们现存的分布式系统。那么，分布式系统需要面临什么问题呢？为了便于理解，并且简化问题，我们先从单点系统开始，并扩展到分布式系统。</p>
+<p>那么，我们首先看一下它们的异同：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Questions</th>
+<th style="text-align:center">Single node</th>
+<th style="text-align:center">Distributed system</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Out of order</td>
+<td style="text-align:center">Because of CPU</td>
+<td style="text-align:center">Unreliable Network(delay, partition etc.)</td>
+</tr>
+<tr>
+<td style="text-align:center">Knowledge&amp;Truth</td>
+<td style="text-align:center">Atomic, consistency, visibility</td>
+<td style="text-align:center">Defined by majority(GC, node outages)</td>
+</tr>
+<tr>
+<td style="text-align:center">Clock</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">Quartz clock &amp; NTP</td>
+</tr>
+</tbody>
+</table>
+<p>首先，是order的问题。</p>
+<p>在单点系统中，CPU和RAM是通过系统总线进行通信的。现代CPU为了提高执行效率，都会把指令乱序执行；不仅如此，编译器为了提高执行效率，也会根据不同的硬件、OS做不同的优化与适配，随之也会带来的并发的问题。然而，order是保证并发结果能够符合预期的基础，那么，有些什么手段能保证指令执行的order呢？</p>
+<p>在各类高级语言中，一般来说都会存在编译器优化，即编译器级的乱序。但是为了保证执行顺序，一般高级语言都增加了各类关键字，以在对应代码块中禁用编译器乱序。例如在Java中，通过volatile关键词禁止了编译器的重排序。</p>
+<p>那么，指令级别的重排序是如何禁用的呢？在Java中，答案也是volatile。在CPU指令级别上，JVM会在volatile修饰变量的前后，根据不同的CPU Architecture加上Memory Barriers，具体细节可以参考<a href="http://g.oswego.edu/dl/jmm/cookbook.html" target="_blank" rel="noopener">JSR-133</a><sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>。</p>
+<p>在分布式系统中，我们不仅要处理单点系统中的乱序问题，还需要面对网络的问题。因为不同机器间通过以太网连接，一般来说都通过TCP or UDP等协议进行通信，即使像TCP之类的协议能保证传输过程中的有序性、可靠性，但并不是一个完全可靠的通信，随时都会有网络中断、拥塞之类的问题影响通信，丢包、乱序等问题的出现，甚至会导致网络分区等异常。</p>
+<p>为了解决分布式环境下网络的不可靠性，分布式系统中通常需要一系列的机制去补偿这种不可靠性，当然，不同的可靠性都有不同的cost，我们需要做trade-off，去满足对应的需求。</p>
+<hr>
+<p>其次，我把他们统一称作Knowledge&amp;Truth。</p>
+<p>在单点系统中，其实就是在并发的环境下，线程间临界区的可见性，以及竞争的问题。不同的高级语言都有不同的方式去保证，当然，这些工具的概念其实是相通的，例如：锁，原子类，信号量，cas等机制，都是为了解决这类问题的存在而创造出来的。</p>
+<p>在分布式系统中，和之前一样，我们也会面临更多的问题，如GC类语言的STW问题、一系列潜在软硬件问题导致的某个节点不可用等问题，这些都是在分布式环境中需要考虑到的。因此，通常情况下，我们都会尽量去避免单点问题，因此，不可避免的会有各种各样的多活措施。</p>
+<hr>
+<p>最后，是时间的问题。一般来说，单点系统有影响，但在分布式环境下，是个很大的问题。因为普通计算机一般采用石英钟，但是石英钟会随着温度的变化而导致震动周期出现细微的变化。虽然通常情况下有NTP服务进行校准，但是系统时间的漂移，导致了系统的时间不可靠。当然也有部分方式去做一定的保证，比如<a href="https://lamport.azurewebsites.net/pubs/time-clocks.pdf" target="_blank" rel="noopener">Lamport clock</a><sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>。</p>
+<hr>
+<p>通过问题的分析，我们可以看到，在分布式系统中，从最简单的没有任何保证的模型（当然也是最高效但可靠性最差的模型），到最严格的Linearizability（最可靠但必然会花费更高昂的代价），其实都是没有严格的对错的，all model is trade-off。</p>
+<h3 id="how-to-solved"><a class="header-anchor" href="#how-to-solved">¶</a>How to solved?</h3>
+<p>为了便于理解，我们先从单点系统出发，然后在扩展到分布式系统中。</p>
+<h4 id="in-single-node"><a class="header-anchor" href="#in-single-node">¶</a>In single node</h4>
+<p>为了尽量简洁的描述问题，就不再过多描述语言相关的问题，以及各种并发问题的细节。同时，也为了和当前通用的系统结合，我们在这里选择MySQL with InnoDB作为我们的单点系统描述对象，并且，MySQL提供的事务系统也是描述分布式锁的一个很好的范本。</p>
+<h5 id="transaction"><a class="header-anchor" href="#transaction">¶</a>Transaction</h5>
+<p>一谈到事务，就不得不提事务隔离级别。一般来说，MySQL提供了4个事务隔离级别，然而在更完备的学术文献中，一般是分为Weak Isolation levels和Actual Serial Execution两种，因此，接下来的描述中会和MySQL定义的事务隔离级别有些许出入。</p>
+<h6 id="weak-isolation-levels"><a class="header-anchor" href="#weak-isolation-levels">¶</a>Weak Isolation levels:</h6>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Isolation level</th>
+<th style="text-align:center">Sloved way</th>
+<th style="text-align:center">Problem</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Read Uncommitted</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">Dirty read</td>
+</tr>
+<tr>
+<td style="text-align:center">Read Committed</td>
+<td style="text-align:center">Record lock</td>
+<td style="text-align:center">Phantoms</td>
+</tr>
+<tr>
+<td style="text-align:center">Snapshot Isolation</td>
+<td style="text-align:center">MVCC-based</td>
+<td style="text-align:center">Phantoms</td>
+</tr>
+</tbody>
+</table>
+<p>一般来说，Weak Isolation levels我们可以认为是Not Actual Serializability，也就是并不是能完全保证和序列化的执行的结果一致。</p>
+<p>首先是Read Uncommitted。</p>
+<p>这个是实现的最简单，甚至是简陋的方式，会有所有的并发问题。一般情况下也不会使用到该事务隔离级别。</p>
+<hr>
+<p>其次是Read Committed。</p>
+<p>在实现中，一般是依靠Record lock来解决了Dirty read。其思路很简单，即使用类似ReadWriteLock的思路，可以并发读，但是读写互斥。然而，该事务隔离级别下，会有Phantoms。</p>
+<hr>
+<p>然后是Snapshot Isolation。</p>
+<p>我们参考上一级事务隔离级别可以发现，读会和写互斥，但是在很多情况下，我们为了更好的性能，可以牺牲掉一定的数据一致性，例如：我们也许并不是很关心其他事务对该object修改成了什么值，它在当前修改之前对值已经足够使用。那么，有没有什么办法可以把这类读写给分离开呢？很显然，在InnoDB里已经有这类实现，即我们所知道的MVCC-based Snapshot Isolation。通过当前的transaction ID，去确定可见数据的version区间，从而显著的提高了系统的并发性能。当然，Phantoms依然存在。</p>
+<hr>
+<p>当然，这些都属于Weak Isolation level，因此，还需要其他的方式去达到Actual Serializability。</p>
+<h6 id="actual-serial-execution"><a class="header-anchor" href="#actual-serial-execution">¶</a>Actual Serial Execution:</h6>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Model</th>
+<th style="text-align:center">Implement in</th>
+<th style="text-align:center">Automatically detecting lost update</th>
+<th style="text-align:center">Concurrency Control Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">2PL(Two-Phase locking)</td>
+<td style="text-align:center">MySQL with InnoDB</td>
+<td style="text-align:center">Explicit with lock</td>
+<td style="text-align:center">Pessimistic(Gap Lock)</td>
+</tr>
+<tr>
+<td style="text-align:center">SSI(Serializable Snapshot Isolation)</td>
+<td style="text-align:center">PostgreSQL(since 9.1)</td>
+<td style="text-align:center">Yes</td>
+<td style="text-align:center">Optimistic(Checked while commit)</td>
+</tr>
+</tbody>
+</table>
+<p>那么，主流的工业界实现分别用了什么办法去保证Actual Serializability呢？不同的工业界实现有不同的考虑。</p>
+<p>2PL：</p>
+<blockquote>
+<p>According to the <a href="https://en.wikipedia.org/wiki/Two-phase_locking" target="_blank" rel="noopener"><strong>two-phase locking</strong></a><sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup> protocol, a transaction handles its locks in two distinct, consecutive phases during the transaction’s execution:</p>
+<ol>
+<li><strong>Expanding phase</strong> (aka Growing phase): locks are acquired and no locks are released (the number of locks can only increase).</li>
+<li><strong>Shrinking phase</strong> (aka Contracting phase): locks are released and no locks are acquired.</li>
+</ol>
+</blockquote>
+<p>具体到MySQL中，使用了2PL的方式，对于每个transaction来说，是这样的一个流程：</p>
+<p><img src="./images/2pl.png" alt="2PL"></p>
+<p>在InnoDB中，通过使用Gap lock，解决了之前提到的Phantoms的问题，很显然，这是一种Pessimistic concurrency control mechanism，在并发量比较轻的地方，如果锁实现的不够好，会有比较严重的性能问题，为了解决锁性能的问题，通常InnoDB会选择使用MVCC的实现方式，去达到了一个很好的性能平衡。</p>
+<p>具体来说，对于snapshot read，很显然，能完全与写操作分离；对与current read，形如<code>SELECT ... FOR SHARE/UPDATE</code>的操作，仍然会对根据情况对record or gap进行加锁。</p>
+<hr>
+<p>SSI:</p>
+<p>在2PL上，我们看到了MySQL的Pessimistic concurrency control mechanism，那对应的，有没有Optimistic concurrency control mechanism呢？答案是显然的。在SIGMOD‘08上有这么一篇paper：<a href="https://courses.cs.washington.edu/courses/cse444/08au/544M/READING-LIST/fekete-sigmod2008.pdf" target="_blank" rel="noopener">Serializable Isolation for Snapshot Databases</a><sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup>，提出了Serializable Snapshot Isolation的思路，那么，有没有实践呢？同样的，在VLDB2012上有这么一篇paper：<a href="https://drkp.net/papers/ssi-vldb12.pdf" target="_blank" rel="noopener">Serializable Snapshot Isolation in PostgreSQL</a><sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a></sup>，当然，<a href="https://wiki.postgresql.org/wiki/SSI" target="_blank" rel="noopener">PostgreSQL’s wiki</a><sup class="footnote-ref"><a href="#fn6" id="fnref6">[6]</a></sup>里也详细介绍了这种实现方式的具体细节。简而言之，就像乐观锁之于悲观锁一样，SSI提供了stale data的检测机制（transaction ID），在commit transaction的时候，如果有stale data，DB则会abort当前的transaction。</p>
+<h5 id="additional-problem"><a class="header-anchor" href="#additional-problem">¶</a>Additional problem:</h5>
+<p>在明白所有的concurrency control mechanism后，我们再来看看在实践中的使用。</p>
+<h6 id="cas"><a class="header-anchor" href="#cas">¶</a>CAS?</h6>
+<p>因为SSI走的是另一套detecting逻辑，因此，我们仅考虑2PL会存在的问题。</p>
+<p>首先假设使用场景是MySQL with InnoDB，事务隔离级别为MySQL的Repeatable Read。那么，我们的CAS一般有两种方式：<code>立即写</code>与<code>延迟写</code>。</p>
+<hr>
+<p>我们首先看第一种场景，<code>立即写</code>。这种场景下，我们有一张progress的表，id为主键，status代表状态，我们的SQL大概会这么写：</p>
+<blockquote>
+<p>UPDATE progress SET status=2 WHERE id = 5 AND status = 1;</p>
+</blockquote>
+<p>因为update为write，自带current read，因此这种CAS的方式要么成功，要么失败（transaction保证），不会有其他的问题。但是这种场景有局限性，如果需要对status做更多的处理呢？</p>
+<hr>
+<p>那么，第二种场景，也就是<code>延迟写</code>便呼之欲出了，类似于场景一，只不过我们需要做更多的逻辑操作：</p>
+<blockquote>
+<p>SELECT status FROM progress where id = 5;</p>
+<p>…</p>
+<p>do some logic</p>
+<p>…</p>
+<p>UPDATE progress SET status=2 WHERE id = 5;</p>
+</blockquote>
+<p>那么，这样有没有什么问题呢？在MySQL下，这样做会有并发问题，因为第一个的<code>SELECT</code>为snapshot read。那么，有没有办法避免这种问题呢？其实，解决的办法就是刚才提到的Automatically detecting lost update的问题，在2PL中，需要一个Explicit lock，具体到这个case，仅需把第一个<code>SELECT</code>改为<code>SELECT ... FOR UPDATE</code>的形式即可。</p>
+<hr>
+<p>至此我们基本理解了在single node下如何做到Serializability，这将是连接分布式系统的桥梁。</p>
+<h4 id="in-distributed-system"><a class="header-anchor" href="#in-distributed-system">¶</a>In Distributed System</h4>
+<p>那么，我们将眼光放到分布式系统中。为了便于理解，我们首先看一看redis。</p>
+<p>redis是一个单线程的实现，对接收到的数据会顺序处理，通常用于cache。虽然单线程模型会有一定的性能问题，但单线程执行接收到的命令天然保证了order的特性（网络环境导致的delay等问题不在此讨论），特别是支持lua脚本扩展，极大的扩展了使用场景。</p>
+<p>为了让集群更鲁棒，通常我们会使用redis的集群模式。目前来看，redis的集群模式分别有官方实现的Sentinel和Gossip，以及第三方实现的codis，但不管用哪种集群模式，因为redis设计之初的定位，在速度与可靠性上选择了极致的速度，舍弃了很多一致性的保证，因此，aof异步同步方式并不一定能保证完全可靠，数据一致性有时候也会看缘分。</p>
+<h5 id="implement-distributed-lock-using-redis"><a class="header-anchor" href="#implement-distributed-lock-using-redis">¶</a>Implement distributed lock using redis:</h5>
+<p>一般来说，用redis实现一个分布式锁有大概三种方式，Simplicity type、Safe-unlock type和Redlock。</p>
+<hr>
+<h6 id="simplicity-type："><a class="header-anchor" href="#simplicity-type：">¶</a>Simplicity type：</h6>
+<p>最朴素的版本非常简单，可以直接SETNX命令即可实现lock：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET lock_key random_value NX PX expire_time</span><br></pre></td></tr></table></figure>
+<p>那么，在unlock的时候可以直接使用DEL：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEL lock_key</span><br></pre></td></tr></table></figure>
+<p>那这样就OK了么？有没有什么问题呢？我们考虑一下这样的case：</p>
+<p><img src="images/redis.png" alt="redis"></p>
+<p>如图，假设session A通过lock拿到锁以后，就去执行相应的业务逻辑。当然，同步调用一旦被阻塞，可能会导致key超时。那么，当session A超时以后，自然session B即可获取到锁。在session B拿到锁以后，session A从阻塞中唤醒，直接去通过del的方式unlock key就会导致锁的错误释放问题。那错误的unlock有办法解决么？</p>
+<hr>
+<h6 id="safe-unlock-type："><a class="header-anchor" href="#safe-unlock-type：">¶</a>Safe-unlock type：</h6>
+<p>答案是肯定的，这个问题的关键是，在unlock的时候，不知道是谁持有这个锁，那我们想一个办法去标志lock的持有者，问题是不是就解决了呢？对应的lock：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET lock_key owner_value NX PX expire_time</span><br></pre></td></tr></table></figure>
+<p>我们把value从之前的随机值，替换为了标志当前session的一个唯一标志符，那么，在unlock的时候也需要一起做判断：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if redis.call("get",KEYS[1]) == ARGV[1] then</span><br><span class="line">    return redis.call("del",KEYS[1])</span><br><span class="line">else</span><br><span class="line">    return 0</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+<p>在unlock的时候比上一种有了变化，我们需要去对当前的value做判断：如果value是当前session，那就可以安全的unlock；如果value不是当前的session，则认为是自己超时，并且返回0值，这样，我们即可在程序里判断是哪种情况。这里为了让该CAS操作具有原子性，所以需要用lua的支持。</p>
+<p>但是，这样的分布式锁就一定可靠么？显然，结论是否定的，那么有没有更优雅并且更可靠的方式呢？</p>
+<hr>
+<h6 id="redlock"><a class="header-anchor" href="#redlock">¶</a><a href="https://redis.io/topics/distlock" target="_blank" rel="noopener">Redlock</a><sup class="footnote-ref"><a href="#fn7" id="fnref7">[7]</a></sup></h6>
+<p>redis的作者参考了现有的一些方式，提出了一种RedLock的实现，其本质上和用于LeaderLess的Quorum NWR思路基本一致：</p>
+<blockquote>
+<p>In the distributed version of the algorithm we assume we have N Redis masters. Those nodes are totally independent, so we don’t use replication or any other implicit coordination system. We already described how to acquire and release the lock safely in a single instance. We take for granted that the algorithm will use this method to acquire and release the lock in a single instance. In our examples we set N=5, which is a reasonable value, so we need to run 5 Redis masters on different computers or virtual machines in order to ensure that they’ll fail in a mostly independent way.</p>
+<p>In order to acquire the lock, the client performs the following operations:</p>
+<ol>
+<li>It gets the current time in milliseconds.</li>
+<li>It tries to acquire the lock in all the N instances sequentially, using the same key name and random value in all the instances. During step 2, when setting the lock in each instance, the client uses a timeout which is small compared to the total lock auto-release time in order to acquire it. For example if the auto-release time is 10 seconds, the timeout could be in the ~ 5-50 milliseconds range. This prevents the client from remaining blocked for a long time trying to talk with a Redis node which is down: if an instance is not available, we should try to talk with the next instance ASAP.</li>
+<li>The client computes how much time elapsed in order to acquire the lock, by subtracting from the current time the timestamp obtained in step 1. If and only if the client was able to acquire the lock in the majority of the instances (at least 3), and the total time elapsed to acquire the lock is less than lock validity time, the lock is considered to be acquired.</li>
+<li>If the lock was acquired, its validity time is considered to be the initial validity time minus the time elapsed, as computed in step 3.</li>
+<li>If the client failed to acquire the lock for some reason (either it was not able to lock N/2+1 instances or the validity time is negative), it will try to unlock all the instances (even the instances it believed it was not able to lock).</li>
+</ol>
+</blockquote>
+<p>简单来概括一下，首先选择N台redis集群，author给了个例子，这里N=5。每次通过以下步骤来aquire lock：</p>
+<ol>
+<li>获取当前时间</li>
+<li>对N个instance依次（sequentially）aquire lock，方式和Safe-unlock type类似。为了尽可能快（ASAP）的获取所有节点的锁，给每个aquire lock的操作设置一个很短的超时时间（For example if the auto-release time is 10 seconds, the timeout could be in the ~ 5-50 milliseconds range.），目的是为了避免某个节点不可用而让之前获取到的锁因为等待超时。</li>
+<li>同NWR的思路一样，当且仅当获得3个以上instance的确认，并且从step1到当前时间小于锁超时时间，这才认为获取到了这个分布式锁。</li>
+<li>当前获取到锁的有效时间=（锁超时时间-获取锁花费的时间）。</li>
+<li>如果某个client因为某些原因（不管是当前时间大于锁超时时间，还是不能获取3台及以上instance的锁）不能获取锁，那么应该去把持有的锁释放。</li>
+</ol>
+<p>这个思路比较长，细节也不少，最终的目的都是为了尽可能快的在不同机器上增加一个锁标志，而对于失败的client则尽快去释放持有的资源。</p>
+<p>那么，这个方法能够真正的满足我们对分布式锁的可靠性要求么？我们回到开头，分布式系统存在的问题里依次去分析：</p>
+<p>首先是网络问题，包括但不限于delay，partition。对于delay的问题，靠redis instance的接收顺序来保证，但是对与严重的delay，或者partition来说，超时、丢包等问题会非常严重，但Redlock是依次（sequentially）去aquire lock，同步的去获取，虽然有超时时间的限制。</p>
+<p>其次是可见性的问题，最根本的原因还是redis master与slaver之间是依靠异步的方式，而丢数据的问题是不可避免的，并且，slaver什么时候能看到master的写入数据，完全看缘分。</p>
+<p>最后，是clock的问题。 从上面的细节可以看到，redlock高度依赖clock，但是对于系统时间的瞬间变动，redlock基本毫无解决的办法。更完善的分析可以参考<a href="http://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html" target="_blank" rel="noopener">Martin的blog</a><sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup>。</p>
+<hr>
+<p>我们跳出这个问题，回到redis的设计思路，其本质还是在可靠性与速度之间，选择了速度，因此，即便是做了一系列的补偿，也掩盖不了顶层设计思路的局限性。相对于Safe-unlock type来说，redlock做的一系列补偿基本依靠NWR的多备份一定程度的提高了可用性，相对于Safe-unlock type来说，提高很有限，但却显著的增加了复杂度，并且，还依赖了不可靠的clock。</p>
+<p>那么，我们还有可靠性更高的方案么？</p>
+<h5 id="linearizability"><a class="header-anchor" href="#linearizability">¶</a><a href="https://en.wikipedia.org/wiki/Linearizability" target="_blank" rel="noopener">Linearizability</a><sup class="footnote-ref"><a href="#fn9" id="fnref9">[9]</a></sup>:</h5>
+<p>要了解高可用，那就不得不了解一致性；要了解一致性，那就不得不了解Linearizability。</p>
+<p>那什么是Linearizability呢？</p>
+<blockquote>
+<p>In <a href="https://en.wikipedia.org/wiki/Concurrent_programming" target="_blank" rel="noopener">concurrent programming</a>, an operation (or set of operations) is <strong>linearizable</strong> if consists of an ordered list of invocation and response events(<a href="https://en.wikipedia.org/wiki/Callbacks" target="_blank" rel="noopener">callbacks</a>), that may be extended by adding response events such that:</p>
+<ol>
+<li>The extended list can be re-expressed as a sequential history(is <a href="https://en.wikipedia.org/wiki/Serializability" target="_blank" rel="noopener">serializable</a>), and</li>
+<li>That sequential history is a subset of the original unextended list.</li>
+</ol>
+</blockquote>
+<p>一句话来说的话，不管是对读还是写来说，Linearizability描述了一种读写的顺序。简单来说，如果对于client A写入了a=6，如果client B看到了a=6，那client C一定也能看到a=6。这里看起来有点像serializability，那么他和serializability有什么区别呢？</p>
+<p>对serializability来说，保证的是并发环境下的读写「看起来像」是在单线程执行，他面向的是一个transaction，会涉及到多个变量（对象）。如之前snapshot isolation里说的，因为old version的存在，是允许看到old version的数据的，这个并未违反serializability，他仅仅限定了最终结果和单线程执行一样。</p>
+<p>对Linearizability来说，保证的是「一旦某位observer看到了某个结果，那其他observer也一定能看到」，例如刚才的例子「client B看到了a=6，那client C一定也能看到a=6」，所以，Linearizability也被称作Consensus，也就是共识。</p>
+<p>我们可以从一张图完整的看清他们的区别与联系：</p>
+<p><img src="http://martin.kleppmann.com/2014/11/isolation-levels.png" alt="Hierarchy of isolation levels"></p>
+<p>1SR = serializability, RR = repeatable read, SI = snapshot isolation, RC = read committed.</p>
+<p>当然，更多细节参考这篇VLDB的paper：<a href="http://arxiv.org/pdf/1302.0309.pdf" target="_blank" rel="noopener">Highly Available Transactions: Virtues and Limitations</a><sup class="footnote-ref"><a href="#fn10" id="fnref10">[10]</a></sup></p>
+<h5 id="raft"><a class="header-anchor" href="#raft">¶</a><a href="https://en.wikipedia.org/wiki/Raft_(computer_science)" target="_blank" rel="noopener">raft</a><sup class="footnote-ref"><a href="#fn11" id="fnref11">[11]</a></sup>:</h5>
+<p>那么，有什么方式能保证Linearizability呢？答案很多，从最初的Paxos，到multi-Paxos，raft等。</p>
+<p>为了降低理解成本，这里选择从raft切入。</p>
+<hr>
+<p>raft是single-leader replication模型，依靠一个（one and only one）选举出来的leader来做到Linearizability。</p>
+<p>raft的节点一共有三种角色：leader，follower和candidate。集群会在启动的时候做选举，即<code>Leader Election</code>，当确定一个leader以后，即可对外提供服务。为了满足Linearizability，所有的请求（raft里称作<code>entry</code>），都会由leader来处理，并与follower同步，这个处理方式被称作<code>Log Replication</code>。</p>
+<h6 id="leader-election："><a class="header-anchor" href="#leader-election：">¶</a>Leader Election：</h6>
+<p>在集群启动的时候，或者leader不可用的时候，节点就会切换到candidate的状态。处于candidate的节点首先会对term+1，对自己voting的同时，向其他节点发起vote（vote中会包含当前term）。每candidate在每一个term里，采取first-come-first-served的方式，只voting一个candidate。</p>
+<p>一旦某个candidate收到一个vote，并且这个vote的term比自己的term大，该candidate就会放弃本轮竞选，voting该node，并且从candidate转变成follower。</p>
+<p>一旦某个candidate收到过半的认同vote，该candidate则会变成leader；如果当前term有分歧，即没选出leader，则会启动下一term的voting。</p>
+<p>为了保证leader Election一定能出结果，raft在启动/重选举的时候增加了一个很小的随机时间。</p>
+<p><a href="https://raft.github.io/raftscope/index.html" target="_blank" rel="noopener">voting的可视化过程</a></p>
+<h6 id="log-replication："><a class="header-anchor" href="#log-replication：">¶</a>Log Replication：</h6>
+<p>当leader收到请求以后，便会生成一个新的<code>entry</code>，在状态机（replicated state machines）中执行，并向follower发送被称作<code>AppendEntries</code>的消息。follower在收到消息后，和leader类似，先执行并确认当前entry。当leader接收到过半的确认以后，便会commit这个entry。</p>
+<p>我们可以从中看到，raft是按照顺序对entry进行commit的，也就是说，当编号为T的entry被commit以后，蕴含着从0，1，到T-1，T的entry都已被commit。这种机制也是保证raft数据一致性的保证之一。</p>
+<h5 id="zookeeper："><a class="header-anchor" href="#zookeeper：">¶</a>zookeeper：</h5>
+<p>那么，raft有没有什么开源的实现呢？答案是显然的，zookeeper的一致性是依赖Zab（Zookeeper Atomic Broadcast）协议，与raft有些许差异，但主体逻辑基本一致（不一致的地方可以参考<a href="https://cwiki.apache.org/confluence/display/ZOOKEEPER/Zab+vs.+Paxos" target="_blank" rel="noopener">Zab.vs.Paxos</a><sup class="footnote-ref"><a href="#fn11" id="fnref11:1">[11]</a></sup>）。以下是leader执行写操作的过程，leader会收到过半follower的ACK以后，才会commit proposal。</p>
+<p><img src="https://purplest.gitbooks.io/zookeeper-source-code/content/assets/cccccc.png" alt="img"></p>
+<p>接着，我们了解zookeeper里的三个概念：<code>Sequence Nodes</code>，<code>Ephemeral Nodes</code>和<code>watchs</code>。</p>
+<h6 id="sequence-nodes："><a class="header-anchor" href="#sequence-nodes：">¶</a>Sequence Nodes：</h6>
+<blockquote>
+<p>When creating a znode you can also request that ZooKeeper append a monotonically increasing counter to the end of path. This counter is unique to the parent znode. The counter has a format of %010d – that is 10 digits with 0 (zero) padding (the counter is formatted in this way to simplify sorting), i.e. “<path>0000000001”. See <a href="https://zookeeper.apache.org/doc/current/recipes.html#sc_recipes_Queues" target="_blank" rel="noopener">Queue Recipe</a> for an example use of this feature. Note: the counter used to store the next sequence number is a signed int (4bytes) maintained by the parent node, the counter will overflow when incremented beyond 2147483647 (resulting in a name “<path>-2147483648”).</path></path></p>
+</blockquote>
+<p>简单来说，就是zookeeper的单调递增计数器（monotonically increasing counter），通过Zab协议保证。</p>
+<h6 id="ephemeral-nodes："><a class="header-anchor" href="#ephemeral-nodes：">¶</a>Ephemeral Nodes：</h6>
+<blockquote>
+<p>ZooKeeper also has the notion of ephemeral nodes. These znodes exists as long as the session that created the znode is active. When the session ends the znode is deleted. Because of this behavior ephemeral znodes are not allowed to have children.</p>
+</blockquote>
+<p>临时节点故如其名，每个client会与znode建立session，一旦session断开，当前session创建的ephemeral nodes就会被销毁。</p>
+<h6 id="watches："><a class="header-anchor" href="#watches：">¶</a>Watches：</h6>
+<blockquote>
+<p>Clients can set watches on znodes. Changes to that znode trigger the watch and then clear the watch. When a watch triggers, ZooKeeper sends the client a notification. More information about watches can be found in the section <a href="https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html#ch_zkWatches" target="_blank" rel="noopener">ZooKeeper Watches</a>.</p>
+</blockquote>
+<p>zookeeper支持在对应的znode上注册一个watcher，当注册的事件发生的时候，znode就会通知对应的client。</p>
+<hr>
+<p>那么，我们如何利用zookeeper来做分布式锁呢？</p>
+<blockquote>
+<p>Clients wishing to obtain a lock do the following:</p>
+<ol>
+<li>Call <strong>create( )</strong> with a pathname of “<em>locknode</em>/lock-” and the <em>sequence</em> and <em>ephemeral</em> flags set.</li>
+<li>Call <strong>getChildren( )</strong> on the lock node <em>without</em> setting the watch flag (this is important to avoid the herd effect).</li>
+<li>If the pathname created in step <strong>1</strong> has the lowest sequence number suffix, the client has the lock and the client exits the protocol.</li>
+<li>The client calls <strong>exists( )</strong> with the watch flag set on the path in the lock directory with the next lowest sequence number.</li>
+<li>if <strong>exists( )</strong> returns false, go to step <strong>2</strong>. Otherwise, wait for a notification for the pathname from the previous step before going to step <strong>2</strong>.</li>
+</ol>
+<p><a href="https://zookeeper.apache.org/doc/r3.3.2/recipes.html" target="_blank" rel="noopener">from Apache</a><sup class="footnote-ref"><a href="#fn12" id="fnref12">[12]</a></sup></p>
+</blockquote>
+<p>简单来说，总体思路和redis上Safe-unlock type的思路基本一致，但利用上面提到的三个概念，使client对锁对掌控更有力。</p>
+<ol>
+<li>首先，调用**create( )**在对应对pathname下创建类似于「locknode_/lock-」的Sequence ephemeral node。</li>
+<li>再调用**getChildren( )**查看节点下对应的node，为了避免「herd effect」，这里不能加watcher。</li>
+<li>如果在step.1中创建的节点为序号最低的节点，那就认为已经拿到了锁，并且结束lock操作。</li>
+<li>否则，通过调用<strong>exists( )</strong>，并设置watcher。</li>
+<li>如果<strong>exists( )</strong> 返回false（即刚才拿到锁的client释放了锁），那么回到step.2重新去获取锁。否则，依靠watcher事件唤醒，再去step.2重新获取锁。</li>
+</ol>
+<hr>
+<h5 id="one-more-things："><a class="header-anchor" href="#one-more-things：">¶</a>One more things：</h5>
+<p>其实这里会有一个问题，在现有的工业界中，zookeeper是唯一的终极解决方案么？显然不是的。可能在大家的共识里，zookeeper是Google Chubby的一个开源实现，然而，俩者的差距从实现思路上就有了本质的区别：</p>
+<blockquote>
+<ul>
+<li><strong>Chubby</strong>：provide coarse-grained locking as well as reliable storage for a loosely-coupled distributed system.</li>
+<li><strong>Zookeeper</strong>：provide a simple and high performance kernel for building more complex coordination primitives at the client.</li>
+</ul>
+</blockquote>
+<p>Chubby是为了分布式锁而设计，是paxos的一个实现，提供了Linearizability。而zookeeper是在paxos的基础上简化了状态，强化了leader，但只提供了写入的Linearizability。具体细节可以参考Chubby的paper：<a href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/chubby-osdi06.pdf" target="_blank" rel="noopener">The Chubby lock service for loosely-coupled distributed systems</a><sup class="footnote-ref"><a href="#fn13" id="fnref13">[13]</a></sup>。</p>
+<p>除此之外，类似于etcd等方案也逐渐成为了业界的主流，TiDB等分布式一致性数据库也在不断的发展，PolarFS甚至提出了ParallelRaft（<a href="http://www.vldb.org/pvldb/vol11/p1849-cao.pdf" target="_blank" rel="noopener">PolarFS- An Ultra-low Latency and Failure Resilient Distributed File System for Shared Storage Cloud Database</a><sup class="footnote-ref"><a href="#fn14" id="fnref14">[14]</a></sup>），但其本质，可以认为大致相似。</p>
+<h3 id="conclusion："><a class="header-anchor" href="#conclusion：">¶</a>conclusion：</h3>
+<p>至此，已经对常用的分布式锁作了一个比较简单但完整的总结。我们可以看到，在单点系统中，用MySQL作为例子，介绍了常用的处理并发的方式，并以此为基础，将问题推广到了分布式系统。当然，分布式系统中的问题并没有想象中那么简单，我们可以简单的分为unreliability和Linearizability。</p>
+<h5 id="unreliability："><a class="header-anchor" href="#unreliability：">¶</a>unreliability：</h5>
+<p>以redis为代表各类分布式锁的实现均归为此类。因为没有对分布式问题完备的处理方式，在特殊的环境下会出现严重的一致性、可用性等问题，但问题的本质在于，redis的实现本来就是一个牺牲一致性保证性能的trade-off，因此，在使用中通常用于做好了幂等性，并且允许重复调用、允许执行丢失等不太在意高可用的环境。</p>
+<h5 id="linearizability："><a class="header-anchor" href="#linearizability：">¶</a>Linearizability：</h5>
+<p>以paxos、raft等一致性保证的方式均归位此类。因为考虑了分布式环境的各类问题，并做好了容错与冗余。但由于设计思路为牺牲性能保证一致性与可用性，因此，性能方面可能有一定的劣势。</p>
+<p>参考文献</p>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p><a href="http://g.oswego.edu/dl/jmm/cookbook.html" target="_blank" rel="noopener">http://g.oswego.edu/dl/jmm/cookbook.html</a>	“The JSR-133 Cookbook for Compiler Writers” <a href="#fnref1" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p><a href="https://lamport.azurewebsites.net/pubs/time-clocks.pdf" target="_blank" rel="noopener">https://lamport.azurewebsites.net/pubs/time-clocks.pdf</a>	“Time, Clocks, and the Ordering of Events in a Distributed System” <a href="#fnref2" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn3" class="footnote-item"><p><a href="https://en.wikipedia.org/wiki/Two-phase_locking" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Two-phase_locking</a>	“Two-phase locking” <a href="#fnref3" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn4" class="footnote-item"><p><a href="https://courses.cs.washington.edu/courses/cse444/08au/544M/READING-LIST/fekete-sigmod2008.pdf" target="_blank" rel="noopener">https://courses.cs.washington.edu/courses/cse444/08au/544M/READING-LIST/fekete-sigmod2008.pdf</a>	“Serializable Isolation for Snapshot Databases” <a href="#fnref4" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn5" class="footnote-item"><p><a href="https://drkp.net/papers/ssi-vldb12.pdf" target="_blank" rel="noopener">https://drkp.net/papers/ssi-vldb12.pdf</a>	“Serializable Snapshot Isolation in PostgreSQL” <a href="#fnref5" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn6" class="footnote-item"><p><a href="https://wiki.postgresql.org/wiki/SSI" target="_blank" rel="noopener">https://wiki.postgresql.org/wiki/SSI</a>	“Serializable Snapshot Isolation (SSI) in PostgreSQL” <a href="#fnref6" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn7" class="footnote-item"><p><a href="https://redis.io/topics/distlock" target="_blank" rel="noopener">https://redis.io/topics/distlock</a>	“Distributed locks with Redis” <a href="#fnref7" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn8" class="footnote-item"><p><a href="http://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html" target="_blank" rel="noopener">http://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html</a>	“How to do distributed locking” <a href="#fnref8" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn9" class="footnote-item"><p><a href="https://en.wikipedia.org/wiki/Linearizability" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Linearizability</a>	“Linearizability” <a href="#fnref9" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn10" class="footnote-item"><p><a href="http://arxiv.org/pdf/1302.0309.pdf" target="_blank" rel="noopener">http://arxiv.org/pdf/1302.0309.pdf</a>	“Highly Available Transactions: Virtues and Limitations” <a href="#fnref10" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn11" class="footnote-item"><p><a href="https://en.wikipedia.org/wiki/Raft_(computer_science)" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Raft_(computer_science)</a>	“Raft” <a href="#fnref11" class="footnote-backref">↩</a> <a href="#fnref11:1" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn12" class="footnote-item"><p><a href="https://zookeeper.apache.org/doc/r3.3.2/recipes.html" target="_blank" rel="noopener">https://zookeeper.apache.org/doc/r3.3.2/recipes.html</a>	“ZooKeeper Recipes and Solutions” <a href="#fnref12" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn13" class="footnote-item"><p><a href="https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/chubby-osdi06.pdf" target="_blank" rel="noopener">https://static.googleusercontent.com/media/research.google.com/zh-CN//archive/chubby-osdi06.pdf</a>	“The Chubby lock service for loosely-coupled distributed systems” <a href="#fnref13" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn14" class="footnote-item"><p><a href="http://www.vldb.org/pvldb/vol11/p1849-cao.pdf" target="_blank" rel="noopener">http://www.vldb.org/pvldb/vol11/p1849-cao.pdf</a>	“PolarFS- An Ultra-low Latency and Failure Resilient Distributed File System for Shared Storage Cloud Database” <a href="#fnref14" class="footnote-backref">↩</a></p>
+</li>
+</ol>
+</section>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/" rel="next" title="一个诡异的MySQL慢查询问题复盘">
+                <i class="fa fa-chevron-left"></i> 一个诡异的MySQL慢查询问题复盘
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">purplest</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/blog/archives/">
+                
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">categories</span>
+                  
+                </div>
+              
+
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#what-questions-in-distributed-system-we-must-faced"><span class="nav-number">1.</span> <span class="nav-text">¶What questions in distributed system we must faced?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#how-to-solved"><span class="nav-number">2.</span> <span class="nav-text">¶How to solved?</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#in-single-node"><span class="nav-number">2.1.</span> <span class="nav-text">¶In single node</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#transaction"><span class="nav-number">2.1.1.</span> <span class="nav-text">¶Transaction</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#weak-isolation-levels"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">¶Weak Isolation levels:</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#actual-serial-execution"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">¶Actual Serial Execution:</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#additional-problem"><span class="nav-number">2.1.2.</span> <span class="nav-text">¶Additional problem:</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#cas"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">¶CAS?</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#in-distributed-system"><span class="nav-number">2.2.</span> <span class="nav-text">¶In Distributed System</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#implement-distributed-lock-using-redis"><span class="nav-number">2.2.1.</span> <span class="nav-text">¶Implement distributed lock using redis:</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#simplicity-type："><span class="nav-number">2.2.1.1.</span> <span class="nav-text">¶Simplicity type：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#safe-unlock-type："><span class="nav-number">2.2.1.2.</span> <span class="nav-text">¶Safe-unlock type：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#redlock"><span class="nav-number">2.2.1.3.</span> <span class="nav-text">¶Redlock[7]</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#linearizability"><span class="nav-number">2.2.2.</span> <span class="nav-text">¶Linearizability[9]:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#raft"><span class="nav-number">2.2.3.</span> <span class="nav-text">¶raft[11]:</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#leader-election："><span class="nav-number">2.2.3.1.</span> <span class="nav-text">¶Leader Election：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#log-replication："><span class="nav-number">2.2.3.2.</span> <span class="nav-text">¶Log Replication：</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#zookeeper："><span class="nav-number">2.2.4.</span> <span class="nav-text">¶zookeeper：</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#sequence-nodes："><span class="nav-number">2.2.4.1.</span> <span class="nav-text">¶Sequence Nodes：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#ephemeral-nodes："><span class="nav-number">2.2.4.2.</span> <span class="nav-text">¶Ephemeral Nodes：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#watches："><span class="nav-number">2.2.4.3.</span> <span class="nav-text">¶Watches：</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#one-more-things："><span class="nav-number">2.2.5.</span> <span class="nav-text">¶One more things：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#conclusion："><span class="nav-number">3.</span> <span class="nav-text">¶conclusion：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#unreliability："><span class="nav-number">3.0.1.</span> <span class="nav-text">¶unreliability：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#linearizability："><span class="nav-number">3.0.2.</span> <span class="nav-text">¶Linearizability：</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">purplest</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/blog/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/blog/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/blog/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=6.6.0"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
