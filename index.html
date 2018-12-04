@@ -359,7 +359,7 @@
                 
                   <span class="post-meta-item-text">Edited on</span>
                 
-                <time title="Modified: 2018-12-04 12:24:06" itemprop="dateModified" datetime="2018-12-04T12:24:06+08:00">2018-12-04</time>
+                <time title="Modified: 2018-12-04 13:22:13" itemprop="dateModified" datetime="2018-12-04T13:22:13+08:00">2018-12-04</time>
               
             
           </span>
@@ -683,8 +683,8 @@
 </blockquote>
 <p>简单来说，总体思路和redis上Safe-unlock type的思路基本一致，但利用上面提到的三个概念，使client对锁对掌控更有力。</p>
 <ol>
-<li>首先，调用**create( )**在对应对pathname下创建类似于「locknode_/lock-」的Sequence ephemeral node。</li>
-<li>再调用**getChildren( )**查看节点下对应的node，为了避免「herd effect」，这里不能加watcher。</li>
+<li>首先，调用 <strong>create( )</strong> 在对应对pathname下创建类似于「locknode_/lock-」的Sequence ephemeral node。</li>
+<li>再调用 <strong>getChildren( )</strong> 查看节点下对应的node，为了避免「herd effect」，这里不能加watcher。</li>
 <li>如果在step.1中创建的节点为序号最低的节点，那就认为已经拿到了锁，并且结束lock操作。</li>
 <li>否则，通过调用<strong>exists( )</strong>，并设置watcher。</li>
 <li>如果<strong>exists( )</strong> 返回false（即刚才拿到锁的client释放了锁），那么回到step.2重新去获取锁。否则，依靠watcher事件唤醒，再去step.2重新获取锁。</li>
