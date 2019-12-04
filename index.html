@@ -342,7 +342,7 @@
                 
               
 
-              <time title="Created: 2019-12-04 00:00:00 / Modified: 21:43:30" itemprop="dateCreated datePublished" datetime="2019-12-04T00:00:00+08:00">2019-12-04</time>
+              <time title="Created: 2019-12-04 00:00:00 / Modified: 22:03:14" itemprop="dateCreated datePublished" datetime="2019-12-04T00:00:00+08:00">2019-12-04</time>
             
 
             
@@ -409,12 +409,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <h4 id="mvcc-overview"><a class="header-anchor" href="#mvcc-overview">¶</a>MVCC Overview</h4>
 <p>在现代DBMS中，transaction management scheme（事务管理模型）保证了atomicity（原子性）和isolation（隔离性），让终端用户在操作数据库的时候不用在乎其他用户的操作，而这些特性正是多版本所带来的。在某些DBMS中，即使有其他事务正在修改某些对象，因为MVCC的特性，可以允许读线程读取早期版本的数据，达到让写操作不阻塞特定的读操作，从而提升特定情况下的并发性。</p>
 <p>不同的MVCC设计理念，对实现而言有很显著的设计区别，常见的MVCC实现大致如下：</p>
-<p><img src="https://purplest.github.io/blog/images/table1.png" alt="table1"></p>
+<p><img src="https://purplest.github.io/blog/images/mvcc/table1.png" alt="table1"></p>
 <h4 id="dbms-meta-data"><a class="header-anchor" href="#dbms-meta-data">¶</a>DBMS Meta-Data</h4>
 <p>除去不同的设计理念，MVCC DBMS在存储tuples（元数据）的时候，都有共同的meta-data（原始数据）。</p>
 <p>Transactions：当每个事务开始的时候，DBMS为每个事务T分配了一个唯一单调递增的identifier(<em>$T_{id}$</em>) 。concurrency control protocol（并发控制协议）通过这个identifier来标记tuples（元数据），并根据此来控制事务能访问到哪些tuples（元数据）。</p>
 <p>Tuples: DMBS通过tuples头部的4个字段来控制并发事务，结构如下：</p>
-<p><img src="https://purplest.github.io/blog/images/figure1.png" alt="figure1"></p>
+<p><img src="https://purplest.github.io/blog/images/mvcc/figure1.png" alt="figure1"></p>
 <p>字段txn-id用来标记持有当前tuples写锁的transaction，当txn-id为0的时候，没有transaction持有当前tuples的写锁。当事务*$T_{id}$*想要更新某个tuples的时候，需要先check这个tuples的txn-id是否为0，然后用CAS操作来获取当前tuples的写锁，如果CAS失败，则获取锁失败。</p>
 <p>字段begin-ts和end-ts用来标记这个tuples的生存时间（可见时间），并且初始值均为0。当DBMS标记删除某条tuples的时候，将begin-ts置为INF。</p>
 <p>字段pointer用来指向临近（上一个or下一个）版本（tuples）。</p>
@@ -422,7 +422,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <p>每个DBMS都有对应的concurrency control protocol（并发控制协议）去控制并发执行的事务。这个协议决定了一个事务在运行的时候，哪些tuple是可见的，哪些tuple是可修改的，以及事务commit的修改是否成功。</p>
 <p>本节介绍4类MVCC concurrency control protocols，并且只考虑tuple-level的锁机制以保证事务的serializable。因为不会对避免幻读带来任何好处，所以暂时忽略区间查询。</p>
 <h4 id="timestamp-ordering-mvto"><a class="header-anchor" href="#timestamp-ordering-mvto">¶</a>Timestamp Ordering (MVTO)</h4>
-<p>MVTO算法是在1979年最早被提出的MVCC协议。</p>
+<p>MVTO算法是在1979年最早被提出的MVCC协议。（未完待续……）</p>
 
           
         
