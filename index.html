@@ -196,7 +196,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-10 18:33:04" itemprop="dateModified" datetime="2019-12-10T18:33:04+08:00">2019-12-10</time>
+                <time title="Modified: 2019-12-10 19:39:59" itemprop="dateModified" datetime="2019-12-10T19:39:59+08:00">2019-12-10</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -245,7 +245,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <h4 id="timestamp-ordering-mvto"><a class="header-anchor" href="#timestamp-ordering-mvto">¶</a>Timestamp Ordering (MVTO)</h4>
 <p>MVTO算法是在1979年最早被提出的MVCC协议。这个方法的关键点在于，利用transaction identifier(<em>$T_{id}$</em>)来保证serialization。相对于之前tuple结构，增加了read-ts字段来记录最近一次读取过该tuple的*$T_{id}$*，如果一个事务获取了tuple的write lock的同时，尝试读取or写入该tuple的事务都会被abort。</p>
 <p><img src="https://purplest.github.io/blog/images/mvcc/figure%202a.png" alt="figure2a"></p>
-<p>当transaction T读取tuple A的时候，DMBS根据$T_{id}$</p>
+<p>当transaction T读取tuple A的时候，DMBS根据$T_{id}$（未完待续……）</p>
 
       
     </div>
