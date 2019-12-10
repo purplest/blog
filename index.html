@@ -56,21 +56,21 @@
 
 
 
-<link href="/blog/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
 
-<link href="/blog/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
-
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png?v=6.6.0">
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
 
 
-  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png?v=6.6.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
 
 
-  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png?v=6.6.0">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
 
 
-  <link rel="mask-icon" href="/blog/images/logo.svg?v=6.6.0" color="#222">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
 
 
 
@@ -83,7 +83,7 @@
 <script type="text/javascript" id="hexo.configurations">
   var NexT = window.NexT || {};
   var CONFIG = {
-    root: '/blog/',
+    root: '/',
     scheme: 'Muse',
     version: '6.6.0',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
@@ -190,7 +190,7 @@
     
 
     <div class="custom-logo-site-title">
-      <a href="/blog/" class="brand" rel="start">
+      <a href="/" class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
         <span class="site-title">一些微小的记录</span>
         <span class="logo-line-after"><i></i></span>
@@ -218,7 +218,7 @@
         
         
           
-          <li class="menu-item menu-item-home">
+          <li class="menu-item menu-item-home menu-item-active">
 
     
     
@@ -228,7 +228,7 @@
 
     
 
-    <a href="/blog/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
 
   </li>
         
@@ -245,7 +245,7 @@
 
     
 
-    <a href="/blog/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
 
   </li>
 
@@ -297,12 +297,12 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2019/12/04/An Empirical Evaluation of In-Memory Multi-Version Concurrency Control/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2019/12/04/An Empirical Evaluation of In-Memory Multi-Version Concurrency Control/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -317,7 +317,7 @@
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2019/12/04/An Empirical Evaluation of In-Memory Multi-Version Concurrency Control/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">An Empirical Evaluation of In-Memory Multi-Version Concurrency Control</a>
+                <a href="/2019/12/04/An Empirical Evaluation of In-Memory Multi-Version Concurrency Control/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">An Empirical Evaluation of In-Memory Multi-Version Concurrency Control</a>
               
             
           </h1>
@@ -359,7 +359,7 @@
                 
                   <span class="post-meta-item-text">Edited on</span>
                 
-                <time title="Modified: 2019-12-10 18:17:40" itemprop="dateModified" datetime="2019-12-10T18:17:40+08:00">2019-12-10</time>
+                <time title="Modified: 2019-12-10 18:33:04" itemprop="dateModified" datetime="2019-12-10T18:33:04+08:00">2019-12-10</time>
               
             
           </span>
@@ -376,7 +376,7 @@
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/paper-reading/" itemprop="url" rel="index"><span itemprop="name">paper reading</span></a></span>
 
                 
                 
@@ -435,6 +435,8 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <p>本节介绍4类MVCC concurrency control protocols，并且只考虑tuple-level的锁机制以保证事务的serializable。因为不会对避免幻读带来任何好处，所以暂时忽略区间查询。现存的思路主要有两类，一类是在index上加锁（悲观锁），另一类是在commit的时候增加额外的validation步骤（乐观锁）。</p>
 <h4 id="timestamp-ordering-mvto"><a class="header-anchor" href="#timestamp-ordering-mvto">¶</a>Timestamp Ordering (MVTO)</h4>
 <p>MVTO算法是在1979年最早被提出的MVCC协议。这个方法的关键点在于，利用transaction identifier(<em>$T_{id}$</em>)来保证serialization。相对于之前tuple结构，增加了read-ts字段来记录最近一次读取过该tuple的*$T_{id}$*，如果一个事务获取了tuple的write lock的同时，尝试读取or写入该tuple的事务都会被abort。</p>
+<p><img src="https://purplest.github.io/blog/images/mvcc/figure%202a.png" alt="figure2a"></p>
+<p>当transaction T读取tuple A的时候，DMBS根据$T_{id}$</p>
 
           
         
@@ -491,12 +493,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2018/12/03/View of Distributed Lock/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2018/12/03/View of Distributed Lock/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -511,7 +513,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2018/12/03/View of Distributed Lock/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">View of Distributed Lock</a>
+                <a href="/2018/12/03/View of Distributed Lock/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">View of Distributed Lock</a>
               
             
           </h1>
@@ -570,7 +572,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/Distributed-Lock/" itemprop="url" rel="index"><span itemprop="name">Distributed Lock</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Distributed-Lock/" itemprop="url" rel="index"><span itemprop="name">Distributed Lock</span></a></span>
 
                 
                 
@@ -990,12 +992,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -1010,7 +1012,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2018/08/05/一个诡异的MySQL慢查询问题复盘/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">一个诡异的MySQL慢查询问题复盘</a>
+                <a href="/2018/08/05/一个诡异的MySQL慢查询问题复盘/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">一个诡异的MySQL慢查询问题复盘</a>
               
             
           </h1>
@@ -1057,7 +1059,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a></span>
 
                 
                 
@@ -1176,12 +1178,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2017/04/01/深入理解Zookeeper/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2017/04/01/深入理解Zookeeper/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -1196,7 +1198,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2017/04/01/深入理解Zookeeper/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">深入理解Zookeeper</a>
+                <a href="/2017/04/01/深入理解Zookeeper/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">深入理解Zookeeper</a>
               
             
           </h1>
@@ -1255,7 +1257,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/Zookeeper/" itemprop="url" rel="index"><span itemprop="name">Zookeeper</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/Zookeeper/" itemprop="url" rel="index"><span itemprop="name">Zookeeper</span></a></span>
 
                 
                 
@@ -1349,12 +1351,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2016/09/20/Contravariance & Covariance In Java Generics/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2016/09/20/Contravariance & Covariance In Java Generics/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -1369,7 +1371,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2016/09/20/Contravariance & Covariance In Java Generics/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">Contravariance & Covariance in Java Generics</a>
+                <a href="/2016/09/20/Contravariance & Covariance In Java Generics/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">Contravariance & Covariance in Java Generics</a>
               
             
           </h1>
@@ -1428,7 +1430,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
 
                 
                 
@@ -1570,12 +1572,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2016/08/15/Reference type of volatile/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2016/08/15/Reference type of volatile/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -1590,7 +1592,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2016/08/15/Reference type of volatile/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">Reference type of volatile</a>
+                <a href="/2016/08/15/Reference type of volatile/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">Reference type of volatile</a>
               
             
           </h1>
@@ -1649,7 +1651,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
 
                 
                 
@@ -1774,12 +1776,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2016/03/22/Striped64/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2016/03/22/Striped64/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -1794,7 +1796,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2016/03/22/Striped64/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">Striped64</a>
+                <a href="/2016/03/22/Striped64/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">Striped64</a>
               
             
           </h1>
@@ -1853,7 +1855,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/jdk-8/" itemprop="url" rel="index"><span itemprop="name">jdk 8</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/jdk-8/" itemprop="url" rel="index"><span itemprop="name">jdk 8</span></a></span>
 
                 
                 
@@ -1960,12 +1962,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2016/03/21/False sharing/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2016/03/21/False sharing/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -1980,7 +1982,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2016/03/21/False sharing/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">False sharing</a>
+                <a href="/2016/03/21/False sharing/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">False sharing</a>
               
             
           </h1>
@@ -2039,7 +2041,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
 
                 
                 
@@ -2141,12 +2143,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2016/03/18/LongAdder&LongAccumulator/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2016/03/18/LongAdder&LongAccumulator/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -2161,7 +2163,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2016/03/18/LongAdder&LongAccumulator/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">LongAdder & LongAccumulator</a>
+                <a href="/2016/03/18/LongAdder&LongAccumulator/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">LongAdder & LongAccumulator</a>
               
             
           </h1>
@@ -2220,7 +2222,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/jdk-8/" itemprop="url" rel="index"><span itemprop="name">jdk 8</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/jdk-8/" itemprop="url" rel="index"><span itemprop="name">jdk 8</span></a></span>
 
                 
                 
@@ -2342,12 +2344,12 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/blog/2015/01/21/ByteCode/">
+    <link itemprop="mainEntityOfPage" href="http://purplest.github.io/blog/2015/01/21/ByteCode/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="purplest">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.gif">
     </span>
 
     <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
@@ -2362,7 +2364,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/blog/blog/2015/01/21/ByteCode/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">ByteCode</a>
+                <a href="/2015/01/21/ByteCode/" class="post-title-link" itemprop="http://purplest.github.io/blog/index.html">ByteCode</a>
               
             
           </h1>
@@ -2421,7 +2423,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
                 <span class="post-meta-item-text">In</span>
               
               
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/blog/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/architecture/" itemprop="url" rel="index"><span itemprop="name">architecture</span></a></span>
 
                 
                 
@@ -2600,7 +2602,7 @@ alloc \ memory \ &amp; \ other<br>
               
                 <div class="site-state-item site-state-posts">
                 
-                  <a href="/blog/archives/">
+                  <a href="/archives/">
                 
                     <span class="site-state-item-count">10</span>
                     <span class="site-state-item-name">posts</span>
@@ -2755,38 +2757,38 @@ alloc \ memory \ &amp; \ other<br>
 
   
   
-    <script type="text/javascript" src="/blog/lib/jquery/index.js?v=2.1.3"></script>
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
   
 
   
   
-    <script type="text/javascript" src="/blog/lib/velocity/velocity.min.js?v=1.2.1"></script>
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
   
 
   
   
-    <script type="text/javascript" src="/blog/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
   
 
 
   
 
 
-  <script type="text/javascript" src="/blog/js/src/utils.js?v=6.6.0"></script>
+  <script type="text/javascript" src="/js/src/utils.js?v=6.6.0"></script>
 
-  <script type="text/javascript" src="/blog/js/src/motion.js?v=6.6.0"></script>
+  <script type="text/javascript" src="/js/src/motion.js?v=6.6.0"></script>
 
 
 
   
-  
-
   
 
   
 
+  
 
-  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=6.6.0"></script>
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.6.0"></script>
 
 
 
