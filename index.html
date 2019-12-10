@@ -359,7 +359,7 @@
                 
                   <span class="post-meta-item-text">Edited on</span>
                 
-                <time title="Modified: 2019-12-10 17:49:19" itemprop="dateModified" datetime="2019-12-10T17:49:19+08:00">2019-12-10</time>
+                <time title="Modified: 2019-12-10 18:17:40" itemprop="dateModified" datetime="2019-12-10T18:17:40+08:00">2019-12-10</time>
               
             
           </span>
@@ -434,7 +434,7 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <p>每个DBMS都有对应的concurrency control protocol（并发控制协议）去控制并发执行的事务。这个协议决定了一个事务在运行的时候，哪些tuple是可见的，哪些tuple是可修改的，以及事务commit的修改是否成功。</p>
 <p>本节介绍4类MVCC concurrency control protocols，并且只考虑tuple-level的锁机制以保证事务的serializable。因为不会对避免幻读带来任何好处，所以暂时忽略区间查询。现存的思路主要有两类，一类是在index上加锁（悲观锁），另一类是在commit的时候增加额外的validation步骤（乐观锁）。</p>
 <h4 id="timestamp-ordering-mvto"><a class="header-anchor" href="#timestamp-ordering-mvto">¶</a>Timestamp Ordering (MVTO)</h4>
-<p>MVTO算法是在1979年最早被提出的MVCC协议。（未完待续……）</p>
+<p>MVTO算法是在1979年最早被提出的MVCC协议。这个方法的关键点在于，利用transaction identifier(<em>$T_{id}$</em>)来保证serialization。相对于之前tuple结构，增加了read-ts字段来记录最近一次读取过该tuple的*$T_{id}$*，如果一个事务获取了tuple的write lock的同时，尝试读取or写入该tuple的事务都会被abort。</p>
 
           
         
