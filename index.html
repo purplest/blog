@@ -196,7 +196,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-10 19:39:59" itemprop="dateModified" datetime="2019-12-10T19:39:59+08:00">2019-12-10</time>
+                <time title="Modified: 2019-12-20 18:54:16" itemprop="dateModified" datetime="2019-12-20T18:54:16+08:00">2019-12-20</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -236,16 +236,21 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <p>Transactions：当每个事务开始的时候，DBMS为每个事务T分配了一个唯一单调递增的identifier(<em>$T_{id}$</em>) 。concurrency control protocol（并发控制协议）通过这个identifier来标记tuples（元数据），并根据此来控制事务能访问到哪些tuples（元数据）。</p>
 <p>Tuples: DMBS通过tuples头部的4个字段来控制并发事务，结构如下：</p>
 <p><img src="https://purplest.github.io/blog/images/mvcc/figure1.png" alt="figure1"></p>
-<p>字段txn-id用来标记持有当前tuples写锁的transaction，当txn-id为0的时候，没有transaction持有当前tuples的写锁。当事务*$T_{id}$*想要更新某个tuples的时候，需要先check这个tuples的txn-id是否为0，然后用CAS操作来获取当前tuples的写锁，如果CAS失败，则获取锁失败。</p>
+<p>字段<code>txn-id</code>用来标记持有当前tuples写锁的transaction，当<code>txn-id</code>为0的时候，没有transaction持有当前tuples的写锁。当事务*$T_{id}$*想要更新某个tuples的时候，需要先check这个tuples的<code>txn-id</code>是否为0，然后用CAS操作来获取当前tuples的写锁，如果CAS失败，则获取锁失败。</p>
 <p>字段begin-ts和end-ts用来标记这个tuples的生存时间（可见时间），并且初始值均为0。当DBMS标记删除某条tuples的时候，将begin-ts置为INF。</p>
 <p>字段pointer用来指向临近（上一个or下一个）版本（tuples）。</p>
 <h3 id="concurrency-control-protocol"><a class="header-anchor" href="#concurrency-control-protocol">¶</a>CONCURRENCY CONTROL PROTOCOL</h3>
 <p>每个DBMS都有对应的concurrency control protocol（并发控制协议）去控制并发执行的事务。这个协议决定了一个事务在运行的时候，哪些tuple是可见的，哪些tuple是可修改的，以及事务commit的修改是否成功。</p>
 <p>本节介绍4类MVCC concurrency control protocols，并且只考虑tuple-level的锁机制以保证事务的serializable。因为不会对避免幻读带来任何好处，所以暂时忽略区间查询。现存的思路主要有两类，一类是在index上加锁（悲观锁），另一类是在commit的时候增加额外的validation步骤（乐观锁）。</p>
 <h4 id="timestamp-ordering-mvto"><a class="header-anchor" href="#timestamp-ordering-mvto">¶</a>Timestamp Ordering (MVTO)</h4>
-<p>MVTO算法是在1979年最早被提出的MVCC协议。这个方法的关键点在于，利用transaction identifier(<em>$T_{id}$</em>)来保证serialization。相对于之前tuple结构，增加了read-ts字段来记录最近一次读取过该tuple的*$T_{id}$*，如果一个事务获取了tuple的write lock的同时，尝试读取or写入该tuple的事务都会被abort。</p>
+<p>MVTO算法是在1979年最早被提出的MVCC协议。这个方法的关键点在于，利用transaction identifier(<em>$T_{id}$</em>)来保证serialization。相对于之前tuple结构，增加了<code>read-ts</code>字段来记录最近一次读取过该tuple的*$T_{id}$*，如果一个事务获取了tuple的write lock的同时，尝试读取or写入该tuple的事务都会被abort。</p>
 <p><img src="https://purplest.github.io/blog/images/mvcc/figure%202a.png" alt="figure2a"></p>
-<p>当transaction T读取tuple A的时候，DMBS根据$T_{id}$（未完待续……）</p>
+<p>当transaction T读取tuple A的时候，DMBS根据$T_{id}$来选择一个在begin-ts和end-ts之间的tuple。如figure 2a所示，因为MVTO不允许出现read uncommitted，所以，当version $A_{x}$没有被其他transaction占有（<code>txn-id</code>等于0或者等于$T_{id}$）的时候，transaction T才可以读取version $A_{x}$；同时，当<code>read-ts</code>小于$T_{id}$的时候，DBMS把$A_{x}$的<code>read-ts</code>更新成$T_{id}$。</p>
+<p>在MVTO中，一个transaction总是已最新的tuple为更新的基准。当transaction T创建一个新的version $B_{x+1}$的时候，需要考虑一下两个条件：①$B_{x}$的写锁没有被其他transaction获取，②$T_{id}$比version $B_{x}$的<code>read-ts</code>大。当这两个条件被满足的时候，DMBS会创建version $B_{x+1}$，并且将version $B_{x+1}$的<code>txn-id</code>设置为$T_{id}$。</p>
+<h4 id="optimistic-concurrency-control-mvocc"><a class="header-anchor" href="#optimistic-concurrency-control-mvocc">¶</a>Optimistic Concurrency Control(MVOCC)</h4>
+<p>这个protocol是基于1981年提出的Optimistic Concurrency Control方案。OCC的出发点是，假设transaction之间是没有并发冲突的，因此，transaction在操作tuple的时候，并不需要获取锁，也能减少占有锁的开销；当然，为了适配MVCC，在原始的OCC protocol的基础上也作了适当的修改。最重要的是，因为tuple的版本信息已经能够阻止非法读写，因此，DBMS不会去维护transaction的私有工作空间。</p>
+<p>MVOCC protocol将一个transaction分为三个阶段。当transaction开始的时候，transaction处于读阶段。在这个阶段，transaction可以发起读、写操作。和MVTO类似，为了在tupleA上实现读操作，DBMS首先根据<code>begin-ts</code>和<code>end-ts</code>字段搜索version $A_{x}$；当写锁未被占有的时候，transaction T才允许更新version $A_{x}$；当transaction根据version $B_{x}$进行更新的时候，DBMS生成version $B_{x+1}$，并将<code>txn-id</code>设置成$T_{id}$。</p>
+<p>（未完待续……）</p>
 
       
     </div>
