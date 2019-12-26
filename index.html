@@ -196,7 +196,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-22 01:18:59" itemprop="dateModified" datetime="2019-12-22T01:18:59+08:00">2019-12-22</time>
+                <time title="Modified: 2019-12-26 17:52:02" itemprop="dateModified" datetime="2019-12-26T17:52:02+08:00">2019-12-26</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -250,7 +250,11 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <h4 id="optimistic-concurrency-control-mvocc"><a class="header-anchor" href="#optimistic-concurrency-control-mvocc">¶</a>Optimistic Concurrency Control(MVOCC)</h4>
 <p>这个protocol是基于1981年提出的Optimistic Concurrency Control方案。OCC的出发点是，假设transaction之间是没有并发冲突的，因此，transaction在操作tuple的时候，并不需要获取锁，也能减少占有锁的开销；当然，为了适配MVCC，在原始的OCC protocol的基础上也作了适当的修改。最重要的是，因为tuple的版本信息已经能够阻止非法读写，因此，DBMS不会去维护transaction的私有工作空间。</p>
 <p><img src="https://purplest.github.io/blog/images/mvcc/figure%202b.png" alt="figure2b"></p>
-<p>MVOCC protocol将一个transaction分为三个阶段。当transaction开始的时候，transaction处于读阶段。在这个阶段，transaction可以发起读、写操作。和MVTO类似，为了在tupleA上实现读操作，DBMS首先根据<code>begin-ts</code>和<code>end-ts</code>字段搜索version $A_{x}$；当写锁未被占有的时候，transaction T才允许更新version $A_{x}$；当transaction根据version $B_{x}$进行更新的时候，DBMS生成version $B_{x+1}$，并将<code>txn-id</code>设置成$T_{id}$。</p>
+<p>MVOCC protocol将一个transaction分为三个阶段。当transaction开始的时候，transaction处于读阶段(<em>read phase</em>)。在这个阶段，transaction可以发起读、写操作。和MVTO类似，为了在tupleA上实现读操作，DBMS首先根据<code>begin-ts</code>和<code>end-ts</code>字段搜索version $A_{x}$；当写锁未被占有的时候，transaction T才允许更新version $A_{x}$；当transaction根据version $B_{x}$进行更新的时候，DBMS生成version $B_{x+1}$，并将<code>txn-id</code>设置成$T_{id}$。</p>
+<p>当transaction委托DBMS准备commit的时候，则进入验证阶段(<em>validation phase</em>)。首先，DBMS分配一个额外的时间戳$T_{commit}$来确定当前transaction的serialization order，然后确认当前读阶段涉及的tuple是否被其他已经commit的transaction修改过。如果通过了验证，则进入写阶段(<em>write phase</em>)，DBMS写入新的version，并且将这个tuple的<code>begin-ts</code>设置为$T_{commit}$，<code>end-ts</code>设置为INF。</p>
+<p>transaction只能修改最近一次修改的tuple，并且，transaction不能读取未提交的tuple。如果一个transaction读取到了过期的数据，在验证阶段会被abort。</p>
+<h4 id="two-phase-locking-mv2pl"><a class="header-anchor" href="#two-phase-locking-mv2pl">¶</a>Two-phase Locking (MV2PL)</h4>
+<p>MV2PL是目前使用的最广泛的一类protocol，因为它能保证transaction的serializability。每个transaction在操作数据前，需要针对当前tuple获取适当的lock。在以磁盘为基础存储(disk-based)的DBMS中，lock与tuple是分开存储的，因此，不会写入到磁盘中；在仅存储在内存(in-memory)的DBMS中，是没必要分开存储的，因此，通常将MV2PL的lock嵌入到tuple的头部信息中。和之前的protocol类似，tuple的<code>txn-id</code>字段表示对应的$T_{id}$持有当前tuple的写锁(<em>write lock</em>)；DBMS增加了一个<code>read-cnt</code>字段来计算持有当前tuple的读锁(<em>read lock</em>)transaction数。当然，可以将<code>txn-id</code>和<code>read-cnt</code>合并成一个64bit的字段，并且DBMS可以用单次的CaS操作来同时操作。</p>
 <p>（未完待续……）</p>
 
       
