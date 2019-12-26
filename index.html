@@ -196,7 +196,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2019-12-26 17:52:02" itemprop="dateModified" datetime="2019-12-26T17:52:02+08:00">2019-12-26</time>
+                <time title="Modified: 2019-12-26 18:56:18" itemprop="dateModified" datetime="2019-12-26T18:56:18+08:00">2019-12-26</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -255,6 +255,11 @@ agement systems (DBMSs)中，Multi-version concurrency control (MVCC)是应用�
 <p>transaction只能修改最近一次修改的tuple，并且，transaction不能读取未提交的tuple。如果一个transaction读取到了过期的数据，在验证阶段会被abort。</p>
 <h4 id="two-phase-locking-mv2pl"><a class="header-anchor" href="#two-phase-locking-mv2pl">¶</a>Two-phase Locking (MV2PL)</h4>
 <p>MV2PL是目前使用的最广泛的一类protocol，因为它能保证transaction的serializability。每个transaction在操作数据前，需要针对当前tuple获取适当的lock。在以磁盘为基础存储(disk-based)的DBMS中，lock与tuple是分开存储的，因此，不会写入到磁盘中；在仅存储在内存(in-memory)的DBMS中，是没必要分开存储的，因此，通常将MV2PL的lock嵌入到tuple的头部信息中。和之前的protocol类似，tuple的<code>txn-id</code>字段表示对应的$T_{id}$持有当前tuple的写锁(<em>write lock</em>)；DBMS增加了一个<code>read-cnt</code>字段来计算持有当前tuple的读锁(<em>read lock</em>)transaction数。当然，可以将<code>txn-id</code>和<code>read-cnt</code>合并成一个64bit的字段，并且DBMS可以用单次的CaS操作来同时操作。</p>
+<p><img src="https://purplest.github.io/blog/images/mvcc/figure%202c.png" alt="figure2c"></p>
+<p>当transaction想要读取tuple A的时候，DBMS通过比较transaction的$T_{id}$与tuple的<code>begin-ts</code>来找到当前可见的version。如果找到了tuple，并且tuple对应的<code>txn-id</code>为0，则将<code>read-cnt</code>增加1。同样的， 只有当<code>txn-id</code>和<code>read-cnt</code>同时为0的时候，这个transaction才可以获取当前的write lock，然后操作对应的tuple。当transaction commit的时候，与MVOCC类似，对于当前transaction创建的tuple，DBMS分配一个唯一的时间戳$T_{commit}$用来更新相应的<code>begin-ts</code>字段，然后释放所持有的锁。</p>
+<p>2PL最关键的不同之处在于怎么处理死锁。之前的研究表明，不等待策略(<em>no-wait</em> policy)在处理死锁问题的时候具有很好的扩展性。因此，在transaction不能获取锁的时候，DMBS直接abort对应的transaction，因此，DBMS也不需要额外的线程与资源去判断与中断死锁。</p>
+<h4 id="serialization-certifier"><a class="header-anchor" href="#serialization-certifier">¶</a>Serialization Certifier</h4>
+<p>在最后这个protocol中，DBMS维护一个serialization graph去检测与移除掉并发transaction产生的「危险结构」。一个weaker isolation levels可以通过基于验证(certifier-based)的方式来获得很好的性能，但是仍然有特定的异常(certain anomalies)。</p>
 <p>（未完待续……）</p>
 
       
